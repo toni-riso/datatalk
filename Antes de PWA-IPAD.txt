@@ -1,0 +1,19 @@
+Debes vovler a poner(substituir) el service-worker
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("./service-worker.js")
+            .then(() => {
+                console.log("✅ Service Worker registrado");
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    });
+}
+</script>
+
+Vínculo de orientación en copilot
+https://m365.cloud.microsoft/chat/entity1-d870f6cd-4aa5-4d42-9626-ab690c041429/eyJpZCI6IlZYTmxjbFl4ZkdoMGRIQnpPaTh2YzNWaWMzUnlZWFJsTFdsdWRDNXZabVpwWTJVdVkyOXRMM3hQU1VRNk9UWTBNalZsTkRRdE56WTVOUzAwTkRWbUxXRXdORFV0WXpNeVpETmxZek0wWmpkbWZETXpaamN6TVRGbUxUTXhNRE10TkRNME5DMWlZMk0wTFRFNU9UTXpNbUUzTm1aaU1Yd3lNREkyTFRBNUxUTXdWREU0T2pNek9qTTNMak14TVRneE9UbGEiLCJzY2VuYXJpbyI6InNoYXJlTGlua1ZpYVBvcG92ZXIiLCJwcm9wZXJ0aWVzIjp7InByb21wdFNvdXJjZSI6InVzZXIiLCJjbGlja1RpbWVzdGFtcCI6IjIwMjYtMDktMzBUMTg6MzM6MzcuNDM4WiJ9LCJjaGF0VHlwZSI6IndlYiIsInZlcnNpb24iOjEuMX0
+

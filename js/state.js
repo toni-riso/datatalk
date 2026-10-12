@@ -1,0 +1,47 @@
+const state = {
+
+    matchRunning: false,
+    currentSecond: 0,
+
+    homeGoals: 0,
+    awayGoals: 0,
+
+    activeTeam: "home",
+
+    selectedPlayer: null,
+
+    starters: [],
+    substitutes: [],
+    players: [],
+    maxPlayersOnField: 11,
+    events: [],
+    timeline: [],
+
+    matchData: {
+        date: "",
+        homeTeam: "",
+        awayTeam: "",
+        competition: ""
+    }
+};
+
+function createPlayer(
+    dorsal,
+    name,
+    position
+){
+    return {
+        id: Date.now(),
+        dorsal: parseInt(dorsal),
+        name,
+        position,
+        starter: false,
+        active: false,
+        captain: false,
+        minutesPlayed: 0,
+        yellowCards: 0,
+        entryMinute: null,
+        exitMinute: null,
+        events: []
+    };
+}
