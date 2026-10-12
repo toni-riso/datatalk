@@ -1,5 +1,7 @@
 const state = {
 
+    playersOnField: 11,
+    matchType: "F11",
     matchRunning: false,
     currentSecond: 0,
 
@@ -19,9 +21,10 @@ const state = {
 
     matchData: {
         date: "",
+        competition: "",
+        matchType: "",
         homeTeam: "",
-        awayTeam: "",
-        competition: ""
+        awayTeam: ""
     }
 };
 

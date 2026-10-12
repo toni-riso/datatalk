@@ -6,7 +6,7 @@
 <!-- ENLACE A MANIFEST -->
     <link rel="manifest" href="manifest.json">
 
-    <title>Football Scout</title>
+    <title>DataTalk v1t</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -28,11 +28,7 @@
   </div>
 
   <div class="sticky-player">
-      Dorsal
-      <span id="stickySelectedPlayer">
-          8
-      </span>
-      seleccionado
+      Dorsal <span id="stickySelectedPlayer">8 </span> seleccionado
   </div>
 
 </header>
@@ -47,11 +43,15 @@
             <input type="date" id="matchDate">
             <input type="text" id="homeTeam"  placeholder="Nuestro equipo">
             <input type="text" id="awayTeam" placeholder="Equipo rival">
+            <select id="matchType">
+                <option value="F11" selected> Fútbol 11 </option>
+                <option value="F8"> Fútbol 8 </option>
+            </select>
             <select id="competition">
-                <option>Liga</option>
+                <option>Fase 1 - Liga</option>
+                <option>Fase 2 - Liga </option>
                 <option>Copa</option>
-                <option>Amistoso</option>
-                <option>Torneo</option>
+                <option>Amistoso/Torneo</option>
             </select>
         </div>
     </section>
@@ -132,6 +132,8 @@
         <button id="pauseBtn"> ⏸ Pausa </button>
         <button id="resetBtn"> 🔄 Reset </button>
         <button id="finishBtn"> 🏁 Fin Partido </button>
+        <button id="newMatchBtn">🆕 Nuevo Partido  </button>
+        <button id="exportMatchBtn"> 💾 Exportar Partido  </button>
     </div>
 </section>
 
@@ -154,9 +156,19 @@
         <button class="player-btn">10</button>
         <button class="player-btn">11</button>
         </div>
-    </section>
+</section>
 
-    <!-- JUGADOR SELECCIONADO -->
+<!-- ESTADÍSTICAS JUGADOR -->
+<section class="card">
+    <h2>📊 Estadísticas del jugador</h2>
+    <div id="playerStats">
+        <div class="stats-empty">
+            Selecciona un jugador para ver sus estadísticas
+        </div>
+    </div>
+</section>
+
+<!-- JUGADOR SELECCIONADO -->
     <section class="card selected-player-card">
         <span>Jugador seleccionado:</span>
         <strong id="selectedPlayer">
@@ -182,94 +194,38 @@
         <details open>
             <summary>🟩 Finalización</summary>
             <div class="event-grid">
-                <button class="finishing"
-                        data-event="shot">
-                    🎯 Tiro
-                </button>
-
-                <button class="finishing"
-                        data-event="shot_target">
-                    🥅 A puerta
-                </button>
-
-                <button class="finishing"
-                        data-event="goal_own">
-                    ⚽ Gol nuestro
-                </button>
-
-                <button class="finishing"
-                        data-event="goal_rival">
-                    ⚽ Gol rival
-                </button>
-
+                <button class="finishing" data-event="shot"> 🎯 Tiro      </button>
+                <button class="finishing" data-event="shot_target"> 🥅 A puerta  </button>
+                <button class="finishing" data-event="goal_own"> ⚽ Gol nuestro   </button>
+                <button class="finishing" data-event="goal_rival"> ⚽ Gol rival</button>
             </div>
-
         </details>
 
         <!-- DEFENSIVO -->
-
         <details>
-
             <summary>🟥 Acciones defensivas</summary>
-
             <div class="event-grid">
-
-                <button class="defensive"
-                        data-event="loss">
-                    💥 Pérdida
-                </button>
-
-                <button class="defensive"
-                        data-event="recovery">
-                    🔁 Recuperación
-                </button>
-
+                <button class="defensive" data-event="loss">💥 Pérdida   </button>
+                <button class="defensive" data-event="recovery"> 🔁 Recuperación</button>
             </div>
-
         </details>
 
         <!-- DISCIPLINA -->
-
         <details>
-
             <summary>🟨 Disciplina</summary>
-
             <div class="event-grid">
-
-                <button class="discipline"
-                        data-event="foul_committed">
-                    🤕 Falta cometida
-                </button>
-
-                <button class="discipline"
-                        data-event="foul_received">
-                    🙋 Falta sufrida
-                </button>
-
-                <button class="discipline"
-                        data-event="yellow">
-                    🟨 Amarilla
-                </button>
-
+                <button class="discipline" data-event="foul_committed"> 🤕 Falta cometida </button>
+                <button class="discipline" data-event="foul_received"> 🙋 Falta sufrida</button>
+                <button class="discipline" data-event="yellow">  🟨 Amarilla </button>
             </div>
-
         </details>
 
         <!-- PARTIDO -->
-
         <details>
-
             <summary>⚙️ Partido</summary>
-
             <div class="event-grid">
-
-                <button class="match-event"
-                        id="substitutionBtn">
-                    🔄 Cambio
-                </button>
-
+                <button class="match-event" id="substitutionBtn">  🔄 Cambio  </button>
             </div>
-
         </details>
 
     </section>
@@ -289,6 +245,12 @@
         </div>
     </section>
 </div>
+<section class="card">
+    <h2>📊 Estadísticas del equipo</h2>
+    <div id="teamStats">
+        Sin datos
+    </div>
+</section>
 
 <div id="substitutionModal" class="modal hidden">
     <div class="modal-content">
@@ -311,6 +273,7 @@
 
 <script src="js/ui.js"></script>
 
+<script src="js/export.js"></script>
 <script src="js/app.js"></script>
 <script src="js/state.js"></script>
 <script src="js/timer.js"></script>
@@ -321,6 +284,7 @@
 <script src="js/substitutions.js"></script>
 <script src="js/storage.js"></script>
 
+<script src="js/stats.js"></script>
 
 
 

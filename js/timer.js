@@ -41,6 +41,9 @@ function startTimer() {
     timerInterval = setInterval(() => {
         state.currentSecond++;
         updateTimerDisplay();
+    if (state.currentSecond % 30 === 0) {
+        saveState();
+    }
     }, 1000);
 }
 

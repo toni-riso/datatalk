@@ -71,31 +71,44 @@ function clearTimeline() {
 }
 
 function buildTimelineText(event) {
-    // Cambios
+
     if (
         event.eventType ===
         "substitution"
     ) {
+
         return (
             event.minute +
             "' 🔄 " +
             event.playerOutDorsal +
+            " " +
+            event.playerOutName +
             " → " +
-            event.playerInDorsal
+            event.playerInDorsal +
+            " " +
+            event.playerInName
         );
+
     }
-    // Eventos normales
-    const playerLabel =
+
+    const dorsal =
         event.dorsal
             ? "D" + event.dorsal
             : "";
+
+    const playerName =
+        event.playerName
+            ? event.playerName
+            : "";
+
     return (
         event.minute +
         "' " +
-        playerLabel +
+        dorsal +
         " " +
-        eventLabel(
-            event.eventType
-        )
+        playerName +
+        " " +
+        eventLabel(event.eventType)
     );
+
 }

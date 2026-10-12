@@ -21,33 +21,43 @@ function registerEvent(eventType) {
     processSpecialEvents(event);
     addTimelineEvent(event);
     console.log("Evento registrado:", event);
+    
+    renderPlayerStats();
+    renderTeamStats();
+
+    saveState();
 }
 
 function buildEvent(eventType) {
+
     const minute =
         Math.floor(state.currentSecond / 60);
+
     const second =
         state.currentSecond % 60;
+
     return {
         id: eventCounter++,
-        timestamp:
-            new Date().toISOString(),
-        matchSecond:
-            state.currentSecond,
-        minute,
-        second,
-        team:
-            state.activeTeam,
-        playerId:
-            state.selectedPlayer?.id ?? null,
-        dorsal:
-            state.selectedPlayer?.dorsal ?? null,
-        playerName:
-            state.selectedPlayer?.name ?? null,
-        position:
-            state.selectedPlayer?.position ?? null,
-        eventType
+        timestamp: new Date().toISOString(),
+        matchSecond: state.currentSecond,
+        minute: minute,
+        second: second,
+        team: state.activeTeam,
+        playerId: state.selectedPlayer
+            ? state.selectedPlayer.id
+            : null,
+        dorsal: state.selectedPlayer
+            ? state.selectedPlayer.dorsal
+            : null,
+        playerName: state.selectedPlayer
+            ? state.selectedPlayer.name
+            : null,
+        position: state.selectedPlayer
+            ? state.selectedPlayer.position
+            : null,
+        eventType: eventType
     };
+
 }
 
 function registerEventOnPlayer(event) {
@@ -184,6 +194,12 @@ function undoLastEvent() {
         "Evento eliminado:",
         lastEvent
     );
+
+    renderPlayerStats();
+    renderTeamStats();
+    
+    saveState();
+
 }
 
 function revertEventEffects(event) {

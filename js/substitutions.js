@@ -119,12 +119,21 @@ function confirmSubstitution() {
         getCurrentMinute();
     // Sale del campo
     playerOut.active = false;
-    playerOut.exitMinute =
-        currentMinute;
+    //                         playerOut.exitMinute =  currentMinute;
+    const lastStint =
+        playerOut.stints[
+            playerOut.stints.length - 1];
+    if (lastStint) {
+        lastStint.out =  currentMinute;
+    }
+    playerIn.stints.push({
+        in: currentMinute,
+        out: null
+    });
+
     // Entra al campo
     playerIn.active = true;
-    playerIn.entryMinute =
-        currentMinute;
+    //                              playerIn.entryMinute = currentMinute;
     // Registrar evento
     registerSubstitutionEvent(
         playerOut,
@@ -139,6 +148,10 @@ function confirmSubstitution() {
     }
     // Actualizar jugadores visibles
     renderFieldPlayers();
+    renderTeamStats();
+
+    saveState();
+
     // Cerrar modal
     closeSubstitutionModal();
 }

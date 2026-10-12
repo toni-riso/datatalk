@@ -58,6 +58,9 @@ function selectPlayer(playerId) {
     if (!player) return;
     state.selectedPlayer = player;
     updateSelectedPlayer();
+    
+    renderPlayerStats();
+
     renderFieldPlayers();
 }
 
@@ -99,19 +102,20 @@ function getActivePlayers() {
 
 }
 
-function createPlayer(dorsal, name, position) {
+function createPlayer(
+    dorsal,
+    name,
+    position
+) {
     return {
         id: Date.now(),
         dorsal: parseInt(dorsal),
-        name: name,
-        position: position,
+        name,
+        position,
         starter: false,
         active: false,
-        captain: false,
-        minutesPlayed: 0,
         yellowCards: 0,
-        entryMinute: null,
-        exitMinute: null,
+        stints: [],
         events: []
     };
 }
@@ -137,6 +141,9 @@ function addPlayer() {
         );
     state.players.push(player);
     renderSquad();
+
+    saveState();
+
     clearPlayerForm();
 }
 
@@ -233,44 +240,59 @@ function initializePlayers() {
 }
 
 function confirmLineup() {
-    const selectedPlayers = document.querySelectorAll(
-        ".starter-checkbox:checked"
-    );
-    // Validar que haya exactamente 11 titulares
-    if (selectedPlayers.length !== 11) {
+    const selectedPlayers =
+        document.querySelectorAll(
+            ".starter-checkbox:checked"
+        );
+        
+    // Deben existir exactamente 11 o 8 titulares
+    if (
+        selectedPlayers.length !==
+        state.playersOnField
+    ) {
         alert(
-            "Debes seleccionar exactamente 11 titulares."
+            `Debes seleccionar exactamente ${state.playersOnField} titulares.`
         );
         return;
     }
+
     // Reiniciar estado de todos los jugadores
     state.players.forEach(player => {
         player.starter = false;
         player.active = false;
-        player.entryMinute = null;
-        player.exitMinute = null;
+        player.stints = [];
     });
-    // Activar titulares seleccionados
+
+    // Activar titulares
     selectedPlayers.forEach(checkbox => {
-        const playerId = Number(
-            checkbox.dataset.playerId
-        );
-        const player = state.players.find(
-            p => p.id === playerId
-        );
+        const playerId =
+            Number(
+                checkbox.dataset.playerId
+            );
+        const player =
+            state.players.find(
+                p => p.id === playerId
+            );
         if (!player) {
             return;
         }
         player.starter = true;
         player.active = true;
-        player.entryMinute = 0;
-        player.exitMinute = null;
+        // Primer periodo de juego
+        player.stints.push({
+            in: 0,
+            out: null
+        });
     });
-    // Limpiar jugador seleccionado
+
+    // Limpiar selección de jugador
     clearSelectedPlayer();
-    // Actualizar listado de jugadores activos
+
+    // Actualizar interfaz
     renderFieldPlayers();
-    // Colapsar sección Datos del Partido
+    renderSquad();
+
+    // Colapsar Datos del Partido
     const matchContent =
         document.getElementById(
             "matchContent"
@@ -285,9 +307,11 @@ function confirmLineup() {
             '.collapse-btn[data-target="matchContent"]'
         );
     if (matchButton) {
-        matchButton.textContent = "▶";
+        matchButton.textContent =
+            "▶";
     }
-    // Colapsar sección Convocatoria
+
+    // Colapsar Convocatoria
     const squadContent =
         document.getElementById(
             "squadContent"
@@ -302,24 +326,22 @@ function confirmLineup() {
             '.collapse-btn[data-target="squadContent"]'
         );
     if (squadButton) {
-        squadButton.textContent = "▶";
+        squadButton.textContent =
+            "▶";
     }
-    // Mostrar resumen en consola
-    console.log(
-        "Titulares confirmados:"
-    );
-    state.players
-        .filter(player => player.starter)
-        .forEach(player => {
-            console.log(
-                player.dorsal +
-                " - " +
-                player.name
-            );
-        });
+
+    // Guardar automáticamente
+    saveState();
+
     // Mensaje final
     alert(
         "✅ Alineación confirmada correctamente"
+    );
+    console.log(
+        "Titulares activos:",
+        state.players.filter(
+            player => player.active
+        )
     );
 }
 
@@ -381,14 +403,14 @@ function parseLineupText(text) {
         const player = {
             id:
                 Date.now() +
-                Math.random(),     
+                Math.random(),
             dorsal,
             name,
             position,
             starter: isStarter,
             active: false,
-            entryMinute: null,
-            exitMinute: null,
+            yellowCards: 0,
+            stints: [],
             events: []
         };          
         state.players.push(
@@ -396,6 +418,9 @@ function parseLineupText(text) {
         );
     });
     renderSquad();
+
+    saveState();
+
     alert(
         "✅ Convocatoria cargada correctamente"
     );
@@ -438,4 +463,7 @@ function deletePlayer(playerId) {
             p => p.id !== playerId
         );
     renderSquad();
+
+    saveState();
+
 }
