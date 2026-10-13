@@ -75,7 +75,8 @@ function updateSelectedPlayer() {
         document.getElementById("stickySelectedPlayer");
     if (stickyPlayer) {
         stickyPlayer.textContent =
-            state.selectedPlayer.dorsal;
+            //state.selectedPlayer.dorsal;
+            `${state.selectedPlayer.dorsal} - ${state.selectedPlayer.name}`;
     }
 }
 
