@@ -1,0 +1,445 @@
+{
+  "exportedAt": "2026-10-13T11:02:18.770Z",
+  "match": {
+    "date": "2000-01-01",
+    "competition": "Fase 1 - Liga",
+    "homeTeam": "San Gabriel A",
+    "awayTeam": "Salesianos A",
+    "matchType": "F8",
+    "playersOnField": 8,
+    "currentSecond": 148,
+    "homeGoals": 1,
+    "awayGoals": 1
+  },
+  "players": [
+    {
+      "id": 1791889169295.5366,
+      "dorsal": 1,
+      "name": "Juan",
+      "position": "POR",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]    },
+    {
+      "id": 1791889169295.3293,
+      "dorsal": 2,
+      "name": "Pedro",
+      "position": "LD",
+      "starter": true,
+      "active": false,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": 1
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.4768,
+      "dorsal": 3,
+      "name": "Mario",
+      "position": "DFC",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.2551,
+      "dorsal": 4,
+      "name": "Sergio",
+      "position": "DFC",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.3196,
+      "dorsal": 5,
+      "name": "Rubén",
+      "position": "LI",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.246,
+      "dorsal": 6,
+      "name": "David",
+      "position": "MC",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.902,
+      "dorsal": 7,
+      "name": "Álvaro",
+      "position": "MC",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.7505,
+      "dorsal": 8,
+      "name": "Miguel",
+      "position": "MC",
+      "starter": true,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 0,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.1123,
+      "dorsal": 9,
+      "name": "Pablo",
+      "position": "EI",
+      "starter": false,
+      "active": true,
+      "yellowCards": 0,
+      "stints": [
+        {
+          "in": 1,
+          "out": null
+        }
+      ]
+    },
+    {
+      "id": 1791889169295.1382,
+      "dorsal": 10,
+      "name": "Carlos",
+      "position": "ED",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    },
+    {
+      "id": 1791889169295.0085,
+      "dorsal": 11,
+      "name": "Toni",
+      "position": "DC",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    },
+    {
+      "id": 1791889169295.3936,
+      "dorsal": 12,
+      "name": "Jorge",
+      "position": "POR",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    },
+    {
+      "id": 1791889169295.5325,
+      "dorsal": 13,
+      "name": "Adrián",
+      "position": "DFC",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    },
+    {
+      "id": 1791889169295.856,
+      "dorsal": 14,
+      "name": "Diego",
+      "position": "MC",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    },
+    {
+      "id": 1791889169295.1921,
+      "dorsal": 15,
+      "name": "Héctor",
+      "position": "DC",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    },
+    {
+      "id": 1791889169295.0432,
+      "dorsal": 16,
+      "name": "Raúl",
+      "position": "MC",
+      "starter": false,
+      "active": false,
+      "yellowCards": 0,
+      "stints": []
+    }
+  ],
+  "events": [
+    {
+      "id": 1,
+      "timestamp": "2026-10-13T10:59:51.973Z",
+      "matchSecond": 7,
+      "minute": 0,
+      "second": 7,
+      "team": "home",
+      "playerId": 1791889169295.3293,
+      "dorsal": 2,
+      "playerName": "Pedro",
+      "position": "LD",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-10-13T10:59:56.174Z",
+      "matchSecond": 11,
+      "minute": 0,
+      "second": 11,
+      "team": "home",
+      "playerId": 1791889169295.4768,
+      "dorsal": 3,
+      "playerName": "Mario",
+      "position": "DFC",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-10-13T11:00:01.140Z",
+      "matchSecond": 16,
+      "minute": 0,
+      "second": 16,
+      "team": "home",
+      "playerId": 1791889169295.3196,
+      "dorsal": 5,
+      "playerName": "Rubén",
+      "position": "LI",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 4,
+      "timestamp": "2026-10-13T11:00:04.675Z",
+      "matchSecond": 20,
+      "minute": 0,
+      "second": 20,
+      "team": "home",
+      "playerId": 1791889169295.902,
+      "dorsal": 7,
+      "playerName": "Álvaro",
+      "position": "MC",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 5,
+      "timestamp": "2026-10-13T11:00:07.750Z",
+      "matchSecond": 23,
+      "minute": 0,
+      "second": 23,
+      "team": "home",
+      "playerId": 1791889169295.3293,
+      "dorsal": 2,
+      "playerName": "Pedro",
+      "position": "LD",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 7,
+      "timestamp": "2026-10-13T11:00:35.510Z",
+      "matchSecond": 50,
+      "minute": 0,
+      "second": 50,
+      "team": "home",
+      "playerId": 1791889169295.2551,
+      "dorsal": 4,
+      "playerName": "Sergio",
+      "position": "DFC",
+      "eventType": "loss"
+    },
+    {
+      "id": 8,
+      "timestamp": "2026-10-13T11:00:50.406Z",
+      "matchSecond": 65,
+      "minute": 1,
+      "second": 5,
+      "team": "home",
+      "playerId": 1791889169295.7505,
+      "dorsal": 8,
+      "playerName": "Miguel",
+      "position": "MC",
+      "eventType": "recovery"
+    },
+    {
+      "id": 9,
+      "timestamp": "2026-10-13T11:00:55.695Z",
+      "matchSecond": 70,
+      "minute": 1,
+      "second": 10,
+      "team": "home",
+      "playerId": 1791889169295.7505,
+      "dorsal": 8,
+      "playerName": "Miguel",
+      "position": "MC",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 10,
+      "timestamp": "2026-10-13T11:00:59.368Z",
+      "matchSecond": 74,
+      "minute": 1,
+      "second": 14,
+      "team": "home",
+      "playerId": 1791889169295.2551,
+      "dorsal": 4,
+      "playerName": "Sergio",
+      "position": "DFC",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 11,
+      "timestamp": "2026-10-13T11:01:07.128Z",
+      "matchSecond": 81,
+      "minute": 1,
+      "second": 21,
+      "team": "home",
+      "playerId": 1791889169295.246,
+      "dorsal": 6,
+      "playerName": "David",
+      "position": "MC",
+      "eventType": "shot"
+    },
+    {
+      "id": 12,
+      "timestamp": "2026-10-13T11:01:25.848Z",
+      "matchSecond": 100,
+      "minute": 1,
+      "second": 40,
+      "team": "home",
+      "playerId": 1791889169295.246,
+      "dorsal": 6,
+      "playerName": "David",
+      "position": "MC",
+      "eventType": "goal_rival"
+    },
+    {
+      "id": 1791889296425,
+      "timestamp": "2026-10-13T11:01:36.425Z",
+      "matchSecond": 111,
+      "minute": 1,
+      "second": 51,
+      "team": "home",
+      "eventType": "substitution",
+      "playerOutId": 1791889169295.3293,
+      "playerOutDorsal": 2,
+      "playerOutName": "Pedro",
+      "playerInId": 1791889169295.1123,
+      "playerInDorsal": 9,
+      "playerInName": "Pablo"
+    },
+    {
+      "id": 13,
+      "timestamp": "2026-10-13T11:01:43.529Z",
+      "matchSecond": 118,
+      "minute": 1,
+      "second": 58,
+      "team": "home",
+      "playerId": 1791889169295.1123,
+      "dorsal": 9,
+      "playerName": "Pablo",
+      "position": "EI",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 14,
+      "timestamp": "2026-10-13T11:01:49.217Z",
+      "matchSecond": 123,
+      "minute": 2,
+      "second": 3,
+      "team": "home",
+      "playerId": 1791889169295.246,
+      "dorsal": 6,
+      "playerName": "David",
+      "position": "MC",
+      "eventType": "dribble_ok"
+    },
+    {
+      "id": 15,
+      "timestamp": "2026-10-13T11:01:53.168Z",
+      "matchSecond": 127,
+      "minute": 2,
+      "second": 7,
+      "team": "home",
+      "playerId": 1791889169295.246,
+      "dorsal": 6,
+      "playerName": "David",
+      "position": "MC",
+      "eventType": "pass_ok"
+    },
+    {
+      "id": 16,
+      "timestamp": "2026-10-13T11:02:05.066Z",
+      "matchSecond": 139,
+      "minute": 2,
+      "second": 19,
+      "team": "home",
+      "playerId": 1791889169295.1123,
+      "dorsal": 9,
+      "playerName": "Pablo",
+      "position": "EI",
+      "eventType": "shot_target"
+    },
+    {
+      "id": 17,
+      "timestamp": "2026-10-13T11:02:06.625Z",
+      "matchSecond": 140,
+      "minute": 2,
+      "second": 20,
+      "team": "home",
+      "playerId": 1791889169295.1123,
+      "dorsal": 9,
+      "playerName": "Pablo",
+      "position": "EI",
+      "eventType": "goal_own"
+    }
+  ]
+}
