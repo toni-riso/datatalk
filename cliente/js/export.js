@@ -1,36 +1,41 @@
 // export.js
 
 function updateMatchData() {
-    const date =
+    state.matchData.id =
+        document.getElementById(
+            "matchId"
+        )?.value || "";
+
+    state.matchData.season =
+        document.getElementById(
+            "season"
+        )?.value || "";
+    state.matchData.round =
+        Number(
+            document.getElementById(
+                "round"
+            )?.value || 1
+        );
+    state.matchData.venue =
+        document.getElementById(
+            "venue"
+        )?.value || "home";
+    state.matchData.date =
         document.getElementById(
             "matchDate"
-        );
-    const competition =
+        )?.value || "";
+    state.matchData.competition =
         document.getElementById(
             "competition"
-        );
-    const matchType =
-        document.getElementById(
-            "matchType"
-        );
-    const homeTeam =
+        )?.value || "";
+    state.matchData.homeTeam =
         document.getElementById(
             "homeTeam"
-        );
-    const awayTeam =
+        )?.value || "";
+    state.matchData.awayTeam =
         document.getElementById(
             "awayTeam"
-        );
-    state.matchData.date =
-        date ? date.value : "";
-    state.matchData.competition =
-        competition ? competition.value : "";
-    state.matchData.matchType =
-        venue ? matchType.value : "";
-    state.matchData.homeTeam =
-        homeTeam ? homeTeam.value : "";
-    state.matchData.awayTeam =
-        awayTeam ? awayTeam.value : "";
+        )?.value || "";
 }
 
 function buildExportData() {
@@ -38,6 +43,14 @@ function buildExportData() {
         exportedAt:
             new Date().toISOString(),
         match: {
+            id:
+                state.matchData.id,
+            season:
+                state.matchData.season,
+            round:
+                state.matchData.round,
+            venue:
+                state.matchData.venue,
             date:
                 state.matchData.date,
             competition:
@@ -142,4 +155,22 @@ function initializeExportButton() {
         "click",
         exportMatch
     );
+}
+
+function generateMatchId() {
+    updateMatchData();
+    const date =
+        state.matchData.date || "";
+    const homeTeam =
+        (state.matchData.homeTeam || "")
+            .trim()
+            .toUpperCase()
+            .replaceAll(" ", "-");
+    const awayTeam =
+        (state.matchData.awayTeam || "")
+            .trim()
+            .toUpperCase()
+            .replaceAll(" ", "-");
+    state.matchData.id =
+        `${date}-${homeTeam}-${awayTeam}`;
 }

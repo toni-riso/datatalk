@@ -20,6 +20,10 @@ const state = {
     timeline: [],
 
     matchData: {
+        id: "",
+        season: "",
+        round: "",
+        venue: "",
         date: "",
         competition: "",
         matchType: "",

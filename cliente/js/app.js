@@ -88,25 +88,3 @@ function initializeMatchSettings() {
     );
 }
 
-function updateMatchData() {
-    state.matchData.date =
-        document.getElementById(
-            "matchDate"
-        )?.value || "";
-    state.matchData.competition =
-        document.getElementById(
-            "competition"
-        )?.value || "";
-    state.matchData.matchType =
-        document.getElementById(
-            "matchType"
-        )?.value || "";
-    state.matchData.homeTeam =
-        document.getElementById(
-            "homeTeam"
-        )?.value || "";
-    state.matchData.awayTeam =
-        document.getElementById(
-            "awayTeam"
-        )?.value || "";
-}

@@ -331,6 +331,9 @@ function confirmLineup() {
             "▶";
     }
 
+    //Generar identificador único
+    generateMatchId();
+
     // Guardar automáticamente
     saveState();
 
