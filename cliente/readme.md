@@ -19,7 +19,7 @@ La aplicación no requiere servidor, base de datos ni instalación de software a
 Clonar el repositorio:
 
 ```bash
-git clone https://github.com/USUARIO/football-scout.git
+git clone https://github.com/USUARIO/datatalk.git
 ```
 
 o descargar el código fuente en formato ZIP.
@@ -39,7 +39,7 @@ en cualquier navegador compatible.
 Acceder directamente a la URL publicada:
 
 ```text
-https://USUARIO.github.io/football-scout/
+https://toni-riso.github.io/datatalk/
 ```
 
 ---
@@ -76,7 +76,6 @@ Introducir:
 ```text
 F11
 F8
-F7
 ```
 
 ---
@@ -88,22 +87,10 @@ F7
 Ejemplo:
 
 ```text
-T;1;Juan Pérez;POR
-T;2;Pedro López;LD
-T;3;Mario García;DFC
-T;4;Sergio Ruiz;DFC
-T;5;Rubén López;LI
-T;6;David Pérez;MC
-T;7;Álvaro Sánchez;MC
-T;8;Antonio Rivas;MC
-T;9;Pablo Martín;EI
-T;10;Carlos Ruiz;ED
-T;11;Miguel Gómez;DC
+T;1;Juan;POR
+T;2;Pedro;LD
 
-S;12;Jorge Pérez;POR
-S;13;Adrián López;DFC
-S;14;Diego Ruiz;MC
-S;15;Héctor Pérez;DC
+S;15;Héctor;DC
 ```
 
 Donde:
@@ -126,7 +113,6 @@ Seleccionar los titulares según el tipo de partido:
 ```text
 F11 → 11 jugadores
 F8  → 8 jugadores
-F7  → 7 jugadores
 ```
 
 Pulsar:
