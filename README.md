@@ -4,6 +4,10 @@ Aplicación web progresiva (PWA) para el registro y análisis de eventos de fút
 
 Diseñada para ser utilizada principalmente desde iPad durante partidos de Fútbol 11 o Fútbol 8.
 
+[Página cliente](https://toni-riso.github.io/datatalk/cliente/)
+
+[![Ver Demo](https://shields.io)](https://toni-riso.github.io/datatalk/cliente/)
+
 ---
 
 # 🚀 Características principales
