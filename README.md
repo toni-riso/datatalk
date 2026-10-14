@@ -4,8 +4,11 @@ Aplicación web progresiva (PWA) para el registro y análisis de eventos de fút
 
 Diseñada para ser utilizada principalmente desde iPad durante partidos de Fútbol 11 o Fútbol 8.
 
-[!Ver demo cliente](https://toni-riso.github.io/datatalk/cliente/)
+[¡Ver demo cliente!](https://toni-riso.github.io/datatalk/cliente/)
 
+[Plantilla ejemplo F11](plantilla-F11.txt)
+
+[Plantilla ejemplo F8](plantilla-F8.txt)
 
 ---
 
