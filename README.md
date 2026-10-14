@@ -6,9 +6,9 @@ Diseñada para ser utilizada principalmente desde iPad durante partidos de Fútb
 
 [¡Ver demo cliente!](https://toni-riso.github.io/datatalk/cliente/)
 
-[Plantilla ejemplo F11](plantilla-F11.txt)
+[Plantilla ejemplo F11](cliente/plantilla-F11.txt)
 
-[Plantilla ejemplo F8](plantilla-F8.txt)
+[Plantilla ejemplo F8](cliente/plantilla-F8.txt)
 
 ---
 
