@@ -1,0 +1,14 @@
+T;1;Gael;POR
+T;2;Luis;DC
+T;3;Pablo;DFC
+T;7;Marc;ED
+T;8;Alvaro;POR
+T;9;Lucas;EI
+T;10;Pancho;MC
+T;11;Mateo;ED
+
+S;13;Sem;DFC
+S;14;Juan;ED
+S;15;Vera;DFC
+S;16;Joan;DFC
+S;17;Alan;MC
