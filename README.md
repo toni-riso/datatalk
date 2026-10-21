@@ -4,7 +4,7 @@ Aplicación web progresiva (PWA) para el registro y análisis de eventos de fút
 
 Diseñada para ser utilizada principalmente desde iPad durante partidos de Fútbol 11 o Fútbol 8.
 
-[¡Ver demo cliente!](https://toni-riso.github.io/datatalk/cliente/)
+[¡Ver demo cliente!](https://toni-riso.github.io/datatalk/cliente-V2/)
 
 [Plantilla ejemplo F11](cliente/plantilla-F11.txt)
 
@@ -38,41 +38,86 @@ Diseñada para ser utilizada principalmente desde iPad durante partidos de Fútb
 - Posición
 - Minutos jugados
 
-## Eventos registrados
+# 📋 Catálogo de eventos
 
-### Construcción
+Data Talk utiliza un modelo de análisis basado en las diferentes fases del juego: **Salida**, **Construcción**, **Finalización**, **Defensa** y **Disciplina**.
 
-- Pase correcto
-- Pase incorrecto
+---
 
-### Regate
+## ⚽ Salida de balón
 
-- Regate correcto
-- Regate incorrecto
+### Eventos de equipo
 
-### Finalización
+| Evento | Descripción |
+|----------|-------------|
+| ✅ Salida exitosa | Salida de balón completada con éxito |
+| ❌ Salida fallida | Salida de balón perdida o interrumpida |
+| ✅ Rival salida exitosa | El rival supera nuestra presión durante su salida de balón |
+| ❌ Rival salida fallida | Recuperamos el balón o impedimos que el rival supere la presión |
 
-- Tiro
-- Tiro a puerta
-- Gol
+### Eventos individuales
 
-### Defensivos
+| Evento | Descripción |
+|----------|-------------|
+| ❌ Pérdida salida | Pérdida de balón de un jugador durante la fase de salida |
 
-- Recuperación
-- Pérdida
+---
 
-### Disciplina
+## 🔶 Construcción
 
-- Falta cometida
-- Falta recibida
-- Tarjeta amarilla
+### Eventos individuales
 
-### Partido
+| Evento | Descripción |
+|----------|-------------|
+| ✅ Regate | El jugador supera a un adversario manteniendo la posesión |
+| ❌ Regate | El jugador intenta superar a un adversario sin éxito |
+| ❌ Pérdida construcción | Pérdida de balón durante la fase de construcción del juego |
 
-- Cambio de jugador
-- Gol rival
+---
 
-## Cronología
+## 🎯 Finalización
+
+### Eventos individuales
+
+| Evento | Descripción |
+|----------|-------------|
+| 🎯 Tiro fuera | Finalización que no encuentra portería |
+| 🥅 Tiro a puerta | Finalización entre los tres palos |
+| ⚽ Gol | Gol anotado por un jugador propio |
+| ❌ Pérdida finalización | Pérdida de balón durante la fase de finalización |
+
+### Eventos de equipo
+
+| Evento | Descripción |
+|----------|-------------|
+| 🎯 Rival tiro fuera | Finalización rival fuera de portería |
+| 🥅 Rival tiro a puerta | Finalización rival entre los tres palos |
+| ⚽ Gol rival | Gol anotado por el equipo contrario |
+
+---
+
+## 🛡️ Acciones defensivas
+
+Las acciones defensivas representan recuperaciones de balón realizadas cuando el equipo no tiene la posesión.
+
+### Eventos individuales
+
+| Evento | Descripción |
+|----------|-------------|
+| 🔁 Recuperación salida | Recuperación de balón durante la salida rival |
+| 🔁 Recuperación construcción | Recuperación de balón durante la construcción rival |
+| 🔁 Recuperación finalización | Recuperación de balón durante la finalización rival |
+
+---
+
+## 🟨 Disciplina
+
+### Eventos individuales
+
+| Evento | Descripción |
+|----------|-------------|
+| 🤕 Falta cometida | Falta realizada por el jugador |
+| 🙋 Falta sufrida## Cronología
 
 - Registro automático de eventos
 - Línea temporal del partido
