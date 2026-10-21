@@ -1,0 +1,16 @@
+T;1;Juan;POR
+T;2;Pedro;LD
+T;3;Mario;DFC
+T;4;Sergio;DFC
+T;5;Rubén;LI
+T;6;David;MC
+T;7;Álvaro;MC
+T;8;Miguel;MC
+
+S;9;Pablo;POR
+S;10;Carlos;ED
+S;11;Toni;DC
+S;13;Adrián;DFC
+S;14;Diego;MC
+S;15;Héctor;DC
+S;16;Raúl;MC
