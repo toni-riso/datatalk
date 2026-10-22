@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1976d2">
+<!-- ENLACE A MANIFEST -->
+    <link rel="manifest" href="manifest.json">
+
+    <title>DataTalk v2</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+<!-- PANEL STICKY -->
+<header class="sticky-panel">
+    <img src="assets/logo.png" alt="Data Talk" class="sticky-logo">
+    
+  <div class="sticky-score">
+      <span id="stickyHomeGoals">2</span>
+      <span class="sticky-separator">-</span>
+      <span id="stickyAwayGoals">1</span>
+  </div>
+
+  <div class="sticky-timer">
+      ⏱ <span id="stickyTimer">-:-</span>
+  </div>
+
+  <!-- 
+    <div class="sticky-team">
+      🟢 <span id="activeTeamLabel"> Nuestro equipo </span>
+  </div>
+  -->
+  <div class="sticky-player">
+      Dorsal <span id="stickySelectedPlayer">- </span> ✅
+  </div>
+
+</header>
+<!-- LOGOTIPO -->
+ <header class="app-header">
+    <img src="assets/logo.png" alt="Data Talk" class="app-logo">
+    <div>
+        <h1>Data Talk</h1>
+        <p> Registro y análisis de eventos deportivos</p>
+    </div>
+</header>
+
+<div class="app-container">
+    <!-- DATOS DEL PARTIDO -->
+    <section class="card collapsible">
+        <div class="section-header">
+            <h2>⚽ Datos del Partido</h2>
+            <button class="collapse-btn" data-target="matchContent">▼</button>
+        </div>
+        <div id="matchContent" class="section-content">
+            <input type="text" id="matchId" placeholder="ID partido">
+            <input type="text" id="season"  placeholder="Temporada">
+            <input type="text" id="round"  placeholder="Jornada">
+            <select id="venue">
+                <option value="home" > Local </option>
+                <option value="away"> Visitante </option>
+            </select>
+            <input type="date" id="matchDate">
+            <input type="text" id="homeTeam"  placeholder="Nuestro equipo">
+            <input type="text" id="awayTeam" placeholder="Equipo rival">
+            <select id="matchType">
+                <option value="F11" selected> Fútbol 11 </option>
+                <option value="F8"> Fútbol 8 </option>
+            </select>
+            <select id="competition">
+                <option>Fase 1 - Liga</option>
+                <option>Fase 2 - Liga </option>
+                <option>Copa</option>
+                <option>Amistoso/Torneo</option>
+            </select>
+        </div>
+    </section>
+
+<!-- CONVOCATORIA -->
+<section class="card collapsible">
+    <div class="section-header">
+        <h2>👥 Convocatoria</h2>
+        <button class="collapse-btn" data-target="squadContent"> ▼ </button>
+    </div>
+    <div id="squadContent" class="section-content">
+        <!-- ALTA MANUAL -->
+        <h3>Añadir jugador</h3>
+        <div class="player-form">
+            <input type="number" id="playerDorsal" placeholder="Dorsal">
+            <input type="text" id="playerName"  placeholder="Nombre">
+            <select id="playerPosition">
+                <option value="POR">Portero</option>
+                <option value="LD">Lateral Derecho</option>
+                <option value="DFC">Defensa Central</option>
+                <option value="LI">Lateral Izquierdo</option>
+                <option value="MC">Medio Centro</option>
+                <option value="EI">Extremo Izquierdo</option>
+                <option value="ED">Extremo Derecho</option>
+                <option value="DC">Delantero</option>
+            </select>
+            <button type="button" id="addPlayerBtn" class="primary-btn">
+                ➕ Añadir jugador
+            </button>
+        </div>
+        <hr>
+        <!-- IMPORTAR CONVOCATORIA -->
+        <h3>Importar convocatoria</h3>
+        <div class="import-panel">
+            <input type="file" id="lineupFile" accept=".txt">
+            <button type="button" id="loadLineupBtn" class="primary-btn">
+                📂 Cargar convocatoria
+            </button>
+        </div>
+        <hr>
+
+        <!-- LISTADO DE CONVOCADOS -->
+        <h3>Jugadores convocados</h3>
+        <p> Selecciona los 11 titulares antes de iniciar el partido.</p>
+        <div id="playersList">
+            <!-- renderSquad() insertará aquí: 
+            <div class="player-row">
+                <label>   
+                    <input type="checkbox" class="starter-checkbox" data-player-id="123">
+                    8 - Antonio Rivas (MC)
+                </label>
+            </div>
+            <div class="player-row">
+                <label>
+                    <input type="checkbox" class="starter-checkbox" data-player-id="1">
+                    1 - Juan Pérez (POR)
+                </label>
+            </div>
+            -->
+        </div>
+        <hr>
+        <!-- CONFIRMAR ALINEACIÓN -->
+        <button type="button" id="confirmLineupBtn" class="primary-btn">
+            ✅ Confirmar alineación
+        </button>
+    </div>
+</section>
+<!-- PANEL DE PARTIDO-->
+<section class="card match-panel">
+    <div class="scoreboard">
+        <span id="homeGoals">0</span>
+        <span class="separator">-</span>
+        <span id="awayGoals">0</span>
+    </div>
+    <div id="timer">   00:00  </div>
+    <div class="timer-controls">
+        <button id="startBtn">   ▶ Inicio </button>
+        <button id="pauseBtn"> ⏸ Pausa </button>
+        <button id="resetBtn"> 🔄 Reset </button>
+        <button id="finishBtn"> 🏁 Fin Partido </button>
+        <button id="newMatchBtn">🆕 Nuevo Partido  </button>
+        <button id="exportMatchBtn"> 💾 Exportar Partido  </button>
+    </div>
+</section>
+
+<!-- JUGADORES -->
+<section class="card">
+    <h2>🏃 Jugadores en campo</h2>
+    <div id="fieldPlayers">
+    <!-- Generados por JS -->
+        <button class="player-btn">1</button>
+        <button class="player-btn">2</button>
+        <button class="player-btn">3</button>
+        <button class="player-btn">4</button>
+
+        <button class="player-btn">5</button>
+        <button class="player-btn">6</button>
+        <button class="player-btn selected">7</button>
+        <button class="player-btn">8</button>
+
+        <button class="player-btn">9</button>
+        <button class="player-btn">10</button>
+        <button class="player-btn">11</button>
+        </div>
+</section>
+
+<!-- ESTADÍSTICAS JUGADOR -->
+<section class="card collapsible">
+    <div class="section-header">
+    <h2>📊 Estadísticas del jugador</h2>
+     <button class="collapse-btn" data-target="playerStatsContent">  ▼ </button>
+    </div>
+    <div id="playerStatsContent" class="section-content" collapsed>
+        <div id="playerStats">
+        </div>
+    </div>
+</section>
+
+<!-- JUGADOR SELECCIONADO -->
+    <section class="card selected-player-card">
+        <span>Jugador seleccionado:</span>
+        <strong id="selectedPlayer">
+            Dorsal 7
+        </strong>
+    </section>
+
+    <!-- EVENTOS -->
+    <section class="card">
+        <h2>📋 Registrar evento</h2>
+        <!-- SALIDA BALÓN -->
+        <details open>
+            <summary>⚙️ Salida balón</summary>
+            <div class="event-grid">
+                <button class="offensive" data-event="buildout_success"> ✅ Salida exitosa </button>
+                <button class="offensive" data-event="buildout_fail"> ❌ Salida fallida </button>
+                <button class="offensive" data-event="rival_buildout_success"> ✅ RIVAL Salida exitosa</button>
+                <button class="offensive" data-event="rival_buildout_fail"> ❌ RIVAL Salida fallida </button>
+                <button class="offensive" data-event="loss_buildout"> ❌ Pérdida salida </button>
+            </div>
+        </details>
+      
+        <!-- CONSTRUCCIÓN -->
+        <details open>
+            <summary>🟦 Construcción</summary>
+            <div class="event-grid">
+                <button class="offensive" data-event="dribble_ok"> ✅ Regate bien </button>
+                <button class="offensive" data-event="dribble_bad"> ❌ Regate mal </button>
+                <button class="offensive" data-event="loss_build"> ❌ Pérdida construcción</button>
+            </div>
+        </details>
+
+        <!-- FINALIZACIÓN -->
+        <details open>
+            <summary>🟩 Finalización</summary>
+            <div class="event-grid">
+                <button class="finishing" data-event="shot_off"> 🎯 Tiro fuera      </button>
+                <button class="finishing" data-event="shot_target"> 🥅 Tiro a puerta  </button>
+                <button class="finishing" data-event="rival_shot_off"> 🎯 RIVAL Tiro fuera      </button>
+                <button class="finishing" data-event="rival_shot_target"> 🥅 RIVAL Tiro a puerta  </button>
+                <button class="finishing" data-event="goal_own"> ⚽ Gol nuestro   </button>
+                <button class="finishing" data-event="goal_rival"> ⚽ Gol rival</button>
+                <button class="offensive" data-event="loss_finish"> ❌ Pérdida finalización</button>
+            </div>
+        </details>
+
+        <!-- DEFENSIVO -->
+        <details>
+            <summary>🟥 Acciones defensivas</summary>
+            <div class="event-grid">
+                <button class="defensive" data-event="recovery_buildout">🔁 Recuperación salida   </button>
+                <button class="defensive" data-event="recovery_build"> 🔁 Recuperación construcción</button>
+                <button class="defensive" data-event="recovery_finish"> 🔁 Recuperación finalización</button>
+            </div>
+        </details>
+
+        <!-- DISCIPLINA -->
+        <details>
+            <summary>🟨 Disciplina</summary>
+            <div class="event-grid">
+                <button class="discipline" data-event="foul_committed"> 🤕 Falta cometida </button>
+                <button class="discipline" data-event="foul_received"> 🙋 Falta sufrida</button>
+                <button class="discipline" data-event="yellow">  🟨 Amarilla </button>
+            </div>
+        </details>
+
+        <!-- PARTIDO -->
+        <details>
+            <summary>⚙️ Partido</summary>
+            <div class="event-grid">
+                <button class="match-event" id="substitutionBtn">  🔄 Cambio  </button>
+            </div>
+        </details>
+
+    </section>
+        <!-- ÚLTIMOS EVENTOS -->
+
+    <section class="card">
+        <div class="timeline-header">
+            <h2>🕒 Últimos eventos</h2>
+            <button type="button" id="undoEventBtn"> ↩️ Deshacer último evento         </button>
+        </div>
+        <div id="timeline">
+        <!--
+            <div class="timeline-item"> 23' D7 Pase correcto </div>
+            <div class="timeline-item"> 24' D9 Regate correcto </div>
+            <div class="timeline-item"> 25' D10 Tiro </div>
+        -->
+        </div>
+    </section>
+</div>
+<section class="card collapsible">
+    <div class="section-header">
+    <h2>📊 Estadísticas del equipo</h2>
+     <button class="collapse-btn" data-target="teamStatsContent">  ▼ </button>
+    </div>
+    <div id="teamStatsContent" class="section-content" collapsed>
+        <div id="teamStats">
+        </div>
+    </div>
+</section>
+
+<div id="substitutionModal" class="modal hidden">
+    <div class="modal-content">
+        <h2>🔄 Cambio</h2>
+        <label> Sale </label>
+        <select id="playerOutSelect">
+        </select>
+        <label> Entra </label>
+        <select id="playerInSelect">
+        </select>
+
+        <div class="modal-actions">
+            <button id="cancelSubBtn"> Cancelar</button>
+            <button id="confirmSubBtn"> Confirmar </button>
+        </div>
+    </div>
+</div>
+
+<script src="js/players.js"></script>
+
+<script src="js/ui.js"></script>
+
+<script src="js/export.js"></script>
+<script src="js/app.js"></script>
+<script src="js/state.js"></script>
+<script src="js/timer.js"></script>
+<script src="js/scoreboard.js"></script>
+
+<script src="js/timeline.js"></script>
+<script src="js/events.js"></script>
+<script src="js/substitutions.js"></script>
+<script src="js/storage.js"></script>
+
+<script src="js/stats.js"></script>
+
+
+
+<script>
+if (
+    "serviceWorker" in navigator &&
+    window.location.protocol !== "file:"
+) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("./service-worker.js")
+            .then(() => {
+                console.log("✅ Service Worker registrado");
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    });
+}
+else {
+    console.log(
+        "ℹ️ Service Worker desactivado en modo local"
+    );
+}
+</script>
+
+</body>
+</html>

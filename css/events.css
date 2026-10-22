@@ -1,0 +1,214 @@
+details{
+    margin-bottom:15px;
+    border:1px solid #dddddd;
+    border-radius:10px;
+    overflow:hidden;
+}
+
+summary{
+    background:#f5f5f5;
+    padding:14px;
+    cursor:pointer;
+    font-weight:bold;
+    font-size:1rem;
+}
+
+.event-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(4,1fr);
+    gap:10px;
+    padding:12px;
+}
+
+.event-grid button{
+    min-height:80px;
+    border:none;
+    border-radius:10px;
+    font-size:1rem;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* CONSTRUCCIÓN */
+.offensive{
+    background:#e3f2fd;
+}
+
+/* FINALIZACIÓN */
+.finishing{
+    background:#e8f5e9;
+}
+
+/* DEFENSIVO */
+.defensive{
+    background:#ffebee;
+}
+
+/* DISCIPLINA */
+.discipline{
+    background:#fff8e1;
+}
+
+/* PARTIDO */
+.match-event{
+    background:#ede7f6;
+}
+
+/* CRONOLOGÍA */
+#timeline{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.timeline-item{
+    padding:12px;
+    border-radius:8px;
+    background:#f5f5f5;
+    border-left:5px solid var(--primary);
+}
+
+.timeline-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+}
+
+#undoEventBtn{
+    border:none;
+    background:#d32f2f;
+    color:white;
+    padding:10px 15px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+/* =====================================
+   ESTADÍSTICAS DE JUGADOR
+===================================== */
+
+#playerStats{
+    width:100%;
+}
+
+.player-stats-header{
+    text-align:center;
+    padding-bottom:15px;
+    margin-bottom:15px;
+    border-bottom:1px solid #dddddd;
+}
+
+.player-stats-header h3{
+    margin:0;
+    font-size:1.4rem;
+    color:var(--primary);
+}
+
+.player-stats-header p{
+    margin:5px 0;
+    font-size:1rem;
+}
+
+.player-position{
+    margin:5px 0;
+    font-size:1rem;
+    color:#666666;
+}
+
+.player-summary{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+    margin-top:10px;
+}
+
+.minutes-played{
+    font-size:1rem;
+    font-weight:bold;
+}
+
+.player-rating{
+    font-size:1.5rem;
+    font-weight:bold;
+    color:#f9a825;
+}
+
+@media (max-width:768px){
+    .player-summary{
+        flex-direction:column;
+        gap:8px;
+    }
+}
+.stats-grid{
+    display:grid;
+    grid-template-columns:
+        repeat(2,1fr);
+    gap:10px;
+}
+
+.stat-box{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:90px;
+    padding:12px;
+    border-radius:10px;
+    background:#f5f5f5;
+    text-align:center;
+}
+
+.stat-label{
+    font-size:0.9rem;
+    margin-bottom:5px;
+}
+
+.stat-value{
+    font-size:1.8rem;
+    font-weight:bold;
+    color:var(--primary);
+}
+
+.stats-empty{
+    text-align:center;
+    color:#666666;
+    padding:25px;
+    font-style:italic;
+}
+
+/* =====================================
+   IPAD HORIZONTAL
+===================================== */
+@media (min-width:1024px){
+    .stats-grid{
+        grid-template-columns:
+            repeat(4,1fr);
+    }
+}
+
+/* =====================================
+   MÓVIL
+===================================== */
+
+@media (max-width:768px){
+    .stats-grid{
+        grid-template-columns:
+            1fr;
+    }
+    .stat-box{
+        min-height:75px;
+    }
+    .stat-value{
+        font-size:1.5rem;
+    }
+}
+
+.player-rating{
+    font-size:1.8rem;
+    font-weight:bold;
+    color:#f9a825;
+}
