@@ -123,35 +123,527 @@ Las acciones defensivas representan recuperaciones de balón realizadas cuando e
 - Línea temporal del partido
 - Deshacer último evento
 
-## Estadísticas
+# 📊 Estadísticas generadas por Data Talk
 
-### Jugador
+Las estadísticas de Data Talk se calculan a partir de los eventos registrados durante el partido y se organizan siguiendo las diferentes fases del juego:
 
-- Pases correctos
-- Pases incorrectos
-- Porcentaje de pase
-- Regates correctos
-- Regates incorrectos
-- Porcentaje de regate
+```text
+Salida
+↓
+Construcción
+↓
+Finalización
+↓
+Defensa
+↓
+Disciplina
+```
+
+Esto permite analizar el rendimiento individual de los jugadores y el comportamiento colectivo del equipo de una manera coherente con el modelo de juego.
+
+---
+
+# 👤 Estadísticas individuales
+
+Las estadísticas individuales se calculan únicamente a partir de los eventos asociados directamente a un jugador.
+
+---
+
+## ⏱ Participación
+
+### Minutos jugados
+
+Tiempo efectivo que el jugador ha permanecido en el terreno de juego.
+
+Se calcula a partir de:
+
+```text
+stints[]
+```
+
+registrados mediante entradas y salidas del campo.
+
+Ejemplo:
+
+```text
+Entrada: minuto 0
+Salida: minuto 25
+
+Entrada: minuto 35
+Salida: minuto 60
+
+Minutos jugados = 50
+```
+
+---
+
+## ⭐ Valoración
+
+Valoración automática del jugador en una escala de:
+
+```text
+0 → 10
+```
+
+La puntuación se genera ponderando:
+
+### Acciones positivas
+
+- Regates exitosos
 - Tiros
 - Tiros a puerta
 - Goles
 - Recuperaciones
+
+### Acciones negativas
+
+- Regates fallidos
 - Pérdidas
 - Faltas cometidas
-- Faltas sufridas
 - Amarillas
-- Minutos jugados
-- Valoración automática
 
-### Equipo
+Las pérdidas en salida penalizan más que las pérdidas en construcción o finalización debido a su mayor riesgo para el equipo.
 
-- Estadísticas agregadas
-- Porcentajes globales
+---
+
+# ⚽ Salida
+
+## ❌ Pérdidas en salida
+
+Número de balones perdidos durante la fase de salida de balón.
+
+Representa errores en zonas de riesgo alto próximas a la propia portería.
+
+```text
+Evento:
+loss_buildout
+```
+
+---
+
+# 🔶 Construcción
+
+## ✅ Regates exitosos
+
+Acciones en las que el jugador supera a un adversario manteniendo la posesión.
+
+```text
+Evento:
+dribble_ok
+```
+
+---
+
+## ❌ Regates fallidos
+
+Intentos fallidos de superar a un adversario.
+
+```text
+Evento:
+dribble_bad
+```
+
+---
+
+## ❌ Pérdidas en construcción
+
+Número de posesiones perdidas durante la fase de elaboración del juego.
+
+```text
+Evento:
+loss_build
+```
+
+---
+
+# 🎯 Finalización
+
+## 🎯 Tiros fuera
+
+Intentos de finalización que no terminan entre los tres palos.
+
+```text
+Evento:
+shot_off
+```
+
+---
+
+## 🥅 Tiros a puerta
+
+Intentos de finalización entre los tres palos.
+
+```text
+Evento:
+shot_target
+```
+
+---
+
+## ⚽ Goles
+
+Número total de goles anotados por el jugador.
+
+```text
+Evento:
+goal_own
+```
+
+---
+
+## ❌ Pérdidas en finalización
+
+Posesiones perdidas durante la fase de finalización.
+
+```text
+Evento:
+loss_finish
+```
+
+---
+
+# 🛡️ Defensa
+
+## 🔁 Recuperaciones en salida
+
+Recuperaciones de balón realizadas durante la salida rival.
+
+```text
+Evento:
+recovery_buildout
+```
+
+---
+
+## 🔁 Recuperaciones en construcción
+
+Recuperaciones producidas durante la fase de construcción rival.
+
+```text
+Evento:
+recovery_build
+```
+
+---
+
+## 🔁 Recuperaciones en finalización
+
+Recuperaciones realizadas durante la fase de finalización rival.
+
+```text
+Evento:
+recovery_finish
+```
+
+---
+
+# 🟨 Disciplina
+
+## 🤕 Faltas cometidas
+
+Número de faltas realizadas por el jugador.
+
+```text
+Evento:
+foul_committed
+```
+
+---
+
+## 🙋 Faltas sufridas
+
+Número de faltas recibidas por el jugador.
+
+```text
+Evento:
+foul_received
+```
+
+---
+
+## 🟨 Amarillas
+
+Tarjetas amarillas recibidas.
+
+```text
+Evento:
+yellow
+```
+
+---
+
+# 👥 Estadísticas colectivas
+
+Las estadísticas colectivas se generan utilizando todos los eventos registrados durante el partido.
+
+Incluyen tanto los eventos individuales como los eventos colectivos.
+
+---
+
+# ⚽ Salida
+
+## ✅ Salidas exitosas
+
+Número de salidas de balón completadas con éxito por el equipo.
+
+```text
+Evento:
+buildout_success
+```
+
+---
+
+## ❌ Salidas fallidas
+
+Número de salidas de balón que terminan en pérdida o sin superar la presión rival.
+
+```text
+Evento:
+buildout_fail
+```
+
+---
+
+## 📈 Porcentaje de salida
+
+Mide la eficacia del equipo durante la salida de balón.
+
+Fórmula:
+
+```text
+Salidas exitosas
+────────────────────────────── × 100
+Salidas exitosas + Salidas fallidas
+```
+
+---
+
+## ✅ Rival salida exitosa
+
+Número de ocasiones en las que el rival consigue superar nuestra presión durante su salida.
+
+```text
+Evento:
+rival_buildout_success
+```
+
+---
+
+## ❌ Rival salida fallida
+
+Número de ocasiones en las que recuperamos el balón o impedimos que el rival supere nuestra presión.
+
+```text
+Evento:
+rival_buildout_fail
+```
+
+---
+
+## 📈 Efectividad de la presión
+
+Mide la capacidad del equipo para impedir la progresión rival en salida de balón.
+
+Fórmula:
+
+```text
+Rival salida fallida
+──────────────────────────────────────── × 100
+Rival salida exitosa + Rival salida fallida
+```
+
+---
+
+# 🔶 Construcción
+
+## ✅ Regates
+
+Suma de todos los regates exitosos del equipo.
+
+---
+
+## ❌ Regates
+
+Suma de todos los regates fallidos del equipo.
+
+---
+
+## 📈 Porcentaje de regate
+
+Fórmula:
+
+```text
+Regates exitosos
+──────────────────────── × 100
+Regates exitosos + Regates fallidos
+```
+
+---
+
+## ❌ Pérdidas en salida
+
+Suma de todas las pérdidas registradas en salida de balón.
+
+---
+
+## ❌ Pérdidas en construcción
+
+Suma de todas las pérdidas registradas en construcción.
+
+---
+
+# 🎯 Finalización
+
+## 🎯 Tiros fuera
+
+Total de tiros fuera realizados por el equipo.
+
+---
+
+## 🥅 Tiros a puerta
+
+Total de tiros entre los tres palos realizados por el equipo.
+
+---
+
+## ⚽ Goles
+
+Total de goles marcados.
+
+---
+
+## ❌ Pérdidas en finalización
+
+Total de pérdidas registradas durante la fase de finalización.
+
+---
+
+## 🎯 Tiros fuera recibidos
+
+Intentos de finalización del rival fuera de portería.
+
+```text
+Evento:
+rival_shot_off
+```
+
+---
+
+## 🥅 Tiros a puerta recibidos
+
+Intentos de finalización del rival entre los tres palos.
+
+```text
+Evento:
+rival_shot_target
+```
+
+---
+
+## ⚽ Goles recibidos
+
+Goles anotados por el equipo rival.
+
+```text
+Evento:
+goal_rival
+```
+
+---
+
+# 🛡️ Defensa
+
+## 🔁 Recuperaciones en salida
+
+Recuperaciones realizadas durante la salida rival.
+
+---
+
+## 🔁 Recuperaciones en construcción
+
+Recuperaciones realizadas durante la construcción rival.
+
+---
+
+## 🔁 Recuperaciones en finalización
+
+Recuperaciones realizadas durante la finalización rival.
+
+---
+
+## 🔁 Recuperaciones totales
+
+Suma de todas las recuperaciones registradas.
+
+Fórmula:
+
+```text
+Recuperaciones salida
++
+Recuperaciones construcción
++
+Recuperaciones finalización
+```
+
+---
+
+# 🟨 Disciplina
+
+## 🤕 Faltas cometidas
+
+Total de faltas realizadas por el equipo.
+
+---
+
+## 🙋 Faltas sufridas
+
+Total de faltas recibidas por el equipo.
+
+---
+
+## 🟨 Amarillas
+
+Total de tarjetas amarillas acumuladas.
+
+---
+
+# 🚀 Estadísticas previstas para Football Scout Analyzer
+
+Las siguientes métricas se generarán posteriormente en Football Scout Analyzer a partir de los JSON exportados:
+
+## Jugadores
+
+- Minutos por temporada
+- Valoración media
+- Valoración máxima
+- Goles
+- Recuperaciones
+- Pérdidas
+- Eficiencia por fase
+- Ranking de jugadores
+
+---
+
+## Equipo
+
+- Evolución jornada a jornada
+- Rendimiento local / visitante
+- Eficacia en salida de balón
+- Eficacia de la presión
 - Producción ofensiva
-- Producción defensiva
+- Solidez defensiva
+- Comparación entre partidos
 
-## Persistencia
+---
+
+## Temporada
+
+- Histórico completo
+- Clasificaciones internas
+- Tendencias
+- Dashboard interactivo
+- Impacto positivo y negativo de cada jugador
+- Informes automáticos## Persistencia
 
 - Guardado automático en Local Storage
 - Recuperación automática
