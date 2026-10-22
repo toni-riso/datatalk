@@ -1,3 +1,10 @@
+# Guía de eventos 
+Consulta la guía de eventos actualizados
+
+[Descripción eventos](https://toni-riso.github.io/datatalk/cliente-V2/eventos.md)
+
+[Guía eventos](https://toni-riso.github.io/datatalk/cliente-V2/guia-eventos.md)
+
 # 🔧 Instalación
 
 ## Requisitos
@@ -137,7 +144,7 @@ para iniciar el cronómetro.
 
 ### 5. Registrar eventos
 
-Seleccionar jugador y registrar la acción correspondiente.
+Seleccionar jugador y registrar la acción correspondiente. También existen eventos que no registran un jugador, son eventos colectivos.
 
 Ejemplo:
 
@@ -174,20 +181,17 @@ y confirmar la sustitución.
 
 ### 7. Consultar estadísticas
 
-Seleccionando un jugador se muestran:
+Seleccionando un jugador se muestran sus principales estadísticas:
 
 - Minutos jugados
 - Valoración automática
-- Pases correctos
-- Pases incorrectos
-- Porcentaje de pase
 - Regates correctos
 - Regates incorrectos
 - Porcentaje de regate
-- Tiros
+- Tiros fuera
 - Tiros a puerta
 - Goles
-- Recuperaciones
+- Recuperaciones en construcción / salida / finalización- 
 - Pérdidas
 - Faltas cometidas
 - Faltas sufridas
