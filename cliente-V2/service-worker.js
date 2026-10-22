@@ -1,4 +1,4 @@
-const CACHE_NAME = "data-talk-v1";
+const CACHE_NAME = "data-talk-v2";
 
 const FILES_TO_CACHE = [
 
@@ -25,7 +25,11 @@ const FILES_TO_CACHE = [
     "./js/storage.js",
     "./js/export.js",
     "./js/stats.js",
-    "./js/ui.js"
+    "./js/ui.js",
+
+    "./assets/logo.png",
+    "./icons/icon-192.png",
+    "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", event => {
