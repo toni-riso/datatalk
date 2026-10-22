@@ -1,4 +1,4 @@
-const CACHE_NAME = "football-scout-v1";
+const CACHE_NAME = "data-talk-v1";
 
 const FILES_TO_CACHE = [
 
@@ -23,31 +23,24 @@ const FILES_TO_CACHE = [
     "./js/timeline.js",
     "./js/substitutions.js",
     "./js/storage.js"
+    "./js/export.js"
+    "./js/stats.js"
+    "./js/ui.js"
 
 ];
 
 self.addEventListener("install", event => {
-
     event.waitUntil(
-
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(FILES_TO_CACHE))
-
     );
-
 });
-
 self.addEventListener("fetch", event => {
-
     event.respondWith(
-
         caches.match(event.request)
             .then(response => {
 
                 return response || fetch(event.request);
-
             })
-
     );
-
 });
