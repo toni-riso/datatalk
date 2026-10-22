@@ -22,11 +22,10 @@ const FILES_TO_CACHE = [
     "./js/events.js",
     "./js/timeline.js",
     "./js/substitutions.js",
-    "./js/storage.js"
-    "./js/export.js"
-    "./js/stats.js"
+    "./js/storage.js",
+    "./js/export.js",
+    "./js/stats.js",
     "./js/ui.js"
-
 ];
 
 self.addEventListener("install", event => {
