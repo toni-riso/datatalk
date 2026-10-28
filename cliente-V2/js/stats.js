@@ -79,8 +79,7 @@ function renderPlayerStats() {
             </div>
         </div>
         <div class="team-stats-section section-salida">
-    
-            <h3>Salida</h3>
+                <h3>⚙️ Salida balón</h3>
     
             <div class="stats-grid">
     
@@ -93,14 +92,13 @@ function renderPlayerStats() {
                     </span>
                 </div>
     
-            </div>
-    
+            </div>    
         </div>
-    
+
+          
+
         <div class="team-stats-section section-construccion">
-    
-            <h3>Construcción</h3>
-    
+        <h3>⚙️ Construcción</h3>  
             <div class="stats-grid">
     
                 <div class="stat-box">
@@ -131,7 +129,6 @@ function renderPlayerStats() {
                 </div>
     
             </div>
-    
         </div>
     
         <div class="team-stats-section section-finalizacion">

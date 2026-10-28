@@ -112,24 +112,18 @@ function newMatch() {
     if (!confirmed) {
         return;
     }
+    if (state.matchFinished) {
+        const proceed = confirm(
+            "Este partido ya ha finalizado.\n\n¿Has exportado el JSON?"
+        );
+        if (!proceed) {
+            return;
+        }
+    }
+    state.matchFinished = false;
 
-    // Detener cronómetro
-    pauseTimer();
-
-    // Borrar almacenamiento local
     clearState();
-
-    // Reiniciar estado
-    state.matchRunning = false;
-    state.currentSecond = 0;
-    state.homeGoals = 0;
-    state.awayGoals = 0;
-    state.activeTeam = "home";
-    state.selectedPlayer = null;
-    state.players = [];
-    state.events = [];
-    state.timeline = [];
-
-    // Recargar interfaz
     location.reload();
+
 }
+    

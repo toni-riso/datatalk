@@ -5,6 +5,7 @@ document.addEventListener(
 
 function initApp(){
     loadState();
+    
     initializePlayers();
     renderSquad();
     renderFieldPlayers();

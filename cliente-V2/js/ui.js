@@ -44,7 +44,7 @@ function collapseSection(contentId, buttonSelector) {
         button.textContent = "▶";
     }
 }
-
+//FUNCION PARA COLAPSAR DESPUES DE PULSAR EL BOTON DE CONFIRMAR ALINEACIÓN
 function collapseMatchAndSquad() {
     collapseSection(
         "matchContent",
@@ -53,5 +53,14 @@ function collapseMatchAndSquad() {
     collapseSection(
         "squadContent",
         '.collapse-btn[data-target="squadContent"]'
+    );
+    collapseSection(
+        "playerStatsContent",
+        '.collapse-btn[data-target="playerStatsContent"]'
+    );
+    
+    collapseSection(
+        "teamStatsContent",
+        '.collapse-btn[data-target="teamStatsContent"]'
     );
 }

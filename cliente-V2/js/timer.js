@@ -37,13 +37,32 @@ function startTimer() {
     if (timerInterval !== null) {
         return;
     }
-    state.matchRunning = true;
-    timerInterval = setInterval(() => {
-        state.currentSecond++;
-        updateTimerDisplay();
-    if (state.currentSecond % 30 === 0) {
-        saveState();
+    if (!state.matchStartTimestamp) {
+        state.matchStartTimestamp = Date.now();
     }
+    if (state.pauseStartedTimestamp) {
+        state.pausedTime +=
+            Date.now() - state.pauseStartedTimestamp;
+
+        state.pauseStartedTimestamp = null;
+    }
+    state.matchRunning = true;
+
+    updateTimerDisplay();
+    saveState();
+
+    timerInterval = setInterval(() => {
+        state.currentSecond = Math.floor(
+            (
+                Date.now()
+                - state.matchStartTimestamp
+                - state.pausedTime
+            ) / 1000
+        );
+        updateTimerDisplay();
+        if (state.currentSecond % 30 === 0) {
+            saveState();
+        }
     }, 1000);
 }
 
@@ -55,30 +74,59 @@ function pauseTimer() {
     }
     clearInterval(timerInterval);
     timerInterval = null;
+    state.pauseStartedTimestamp = Date.now();
     state.matchRunning = false;
+
+    saveState();
 }
 
 /** Reinicia el cronómetro  */
 
 function resetTimer() {
-    pauseTimer();
+
+    if (timerInterval !== null) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
     state.currentSecond = 0;
+    state.matchStartTimestamp = null;
+    state.pausedTime = 0;
+    state.pauseStartedTimestamp = null;
+    state.matchRunning = false;
+
     updateTimerDisplay();
 }
 
 /** Finaliza el partido  */
 
 function finishMatch() {
-    pauseTimer();
-    alert(
-        "🏁 Partido finalizado\n\n" +
-        "Resultado: " +
-        state.homeGoals +
-        " - " +
-        state.awayGoals
+    const confirmed = confirm(
+        `¿Finalizar partido?
+        ${state.matchData.homeTeam}
+        ${state.homeGoals} - ${state.awayGoals}
+        ${state.matchData.awayTeam}
+        ⏱ Tiempo:
+        ${formatTime(state.currentSecond)}
+        ⚠ Recuerda exportar el partido al finalizar.`
     );
-}
+    if (!confirmed) {
+        return;
+    }
+    pauseTimer();
 
+    state.matchFinished = true; //Bandera comprobar si partido finalizado antes de nuevo partido
+    saveState();
+
+    alert(
+        `🏁 Partido finalizado
+        Resultado final:
+        ${state.matchData.homeTeam}
+        ${state.homeGoals} - ${state.awayGoals}
+        ${state.matchData.awayTeam}
+        ⚠ No olvides exportar el JSON antes de iniciar un nuevo partido.`
+        );
+}
 /** Devuelve el minuto actual  */
 
 function getCurrentMinute() {
@@ -102,40 +150,50 @@ function isTimerRunning() {
 /** Inicialización  */
 
 function initializeTimer() {
+
     updateTimerDisplay();
-    const startBtn =
-        document.getElementById("startBtn");
-    const pauseBtn =
-        document.getElementById("pauseBtn");
-    const resetBtn =
-        document.getElementById("resetBtn");
-    const finishBtn =
-        document.getElementById("finishBtn");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const finishBtn = document.getElementById("finishBtn");
+
     if (startBtn) {
-        startBtn.addEventListener(
-            "click",
-            startTimer
-        );
+        startBtn.addEventListener( "click",  startTimer);
     }
     if (pauseBtn) {
-        pauseBtn.addEventListener(
-            "click",
-            pauseTimer
-        );
+        pauseBtn.addEventListener("click",pauseTimer);
     }
     if (resetBtn) {
-        resetBtn.addEventListener(
-            "click",
-            resetTimer
-        );
+        resetBtn.addEventListener("click", resetTimer);
     }
     if (finishBtn) {
-        finishBtn.addEventListener(
-            "click",
-            finishMatch
-        );
+        finishBtn.addEventListener("click", finishMatch);
     }
+
+    document.addEventListener(
+        "visibilitychange",
+        () => {
+            if (document.visibilityState === "visible" && state.matchRunning) {
+                state.currentSecond = Math.floor(
+                    (
+                        Date.now() -
+                        state.matchStartTimestamp -
+                        state.pausedTime
+                    ) / 1000
+                );
+                updateTimerDisplay();
+            }
+        }
+    );
     console.log(
         "✅ timer.js inicializado"
     );
+
+    if (
+        state.matchRunning &&
+        state.matchStartTimestamp
+    ) {
+        updateElapsedTime();
+        updateTimerDisplay();
+    }
 }

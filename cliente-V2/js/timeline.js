@@ -26,6 +26,7 @@ function createTimelineItem(event) {
     return item;
 }
 
+/*
 function buildTimelineText(event) {
     const teamIcon =
         event.team === "home"
@@ -37,6 +38,7 @@ function buildTimelineText(event) {
         : "";
     return `${event.minute}' ${teamIcon}${playerLabel} ${eventLabel(event.eventType)}`;
 }
+*/
 
 function addTimelineEvent(event) {
     const timeline =
@@ -71,12 +73,10 @@ function clearTimeline() {
 }
 
 function buildTimelineText(event) {
-
     if (
         event.eventType ===
         "substitution"
     ) {
-
         return (
             event.minute +
             "' 🔄 " +
@@ -88,27 +88,27 @@ function buildTimelineText(event) {
             " " +
             event.playerInName
         );
-
     }
+    const label =
+        eventLabel(
+            event.eventType
+        );
 
-    const dorsal =
-        event.dorsal
-            ? "D" + event.dorsal
-            : "";
-
-    const playerName =
-        event.playerName
-            ? event.playerName
-            : "";
-
+    // Eventos sin jugador
+    if (!event.playerId) {
+        return (
+            event.minute +
+            "' 👥 " +
+            label
+        );
+    }
     return (
         event.minute +
-        "' " +
-        dorsal +
+        "' D" +
+        event.dorsal +
         " " +
-        playerName +
+        event.playerName +
         " " +
-        eventLabel(event.eventType)
+        label
     );
-
 }

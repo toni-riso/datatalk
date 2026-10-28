@@ -26,7 +26,7 @@ function registerEvent(eventType) {
     }   
     const event = buildEvent(eventType);
     state.events.push(event);
-    registerEventOnPlayer(event);
+
     processSpecialEvents(event);
     addTimelineEvent(event);
     console.log("Evento registrado:", event);
@@ -39,49 +39,56 @@ function registerEvent(eventType) {
 
 function buildEvent(eventType) {
 
-    const minute =
-        Math.floor(state.currentSecond / 60);
+    const minute =Math.floor(state.currentSecond / 60);
 
-    const second =
-        state.currentSecond % 60;
+    const second =state.currentSecond % 60;
+
+    const eventsWithoutPlayer = [
+
+        "buildout_success",
+        "buildout_fail",
+
+        "rival_buildout_success",
+        "rival_buildout_fail",
+
+        "rival_shot_off",
+        "rival_shot_target",
+
+        "goal_rival"
+
+    ];
+
+    const requiresPlayer =!eventsWithoutPlayer.includes(eventType);
 
     return {
         id: eventCounter++,
-        timestamp: new Date().toISOString(),
-        matchSecond: state.currentSecond,
-        minute: minute,
-        second: second,
-        team: state.activeTeam,
-        playerId: state.selectedPlayer
-            ? state.selectedPlayer.id
-            : null,
-        dorsal: state.selectedPlayer
-            ? state.selectedPlayer.dorsal
-            : null,
-        playerName: state.selectedPlayer
-            ? state.selectedPlayer.name
-            : null,
-        position: state.selectedPlayer
-            ? state.selectedPlayer.position
-            : null,
-        eventType: eventType
+        timestamp:new Date().toISOString(),
+        matchSecond:state.currentSecond,
+        minute:minute,
+        second:second,
+        team:state.activeTeam,
+
+        playerId:
+            requiresPlayer
+                ? state.selectedPlayer?.id
+                : null,
+        dorsal:
+            requiresPlayer
+                ? state.selectedPlayer?.dorsal
+                : null,
+        playerName:
+            requiresPlayer
+                ? state.selectedPlayer?.name
+                : null,
+        position:
+            requiresPlayer
+                ? state.selectedPlayer?.position
+                : null,
+        eventType:
+            eventType
     };
-
 }
 
-function registerEventOnPlayer(event) {
-    if (!event.playerId) {
-        return;
-    }
-    const player =
-        state.players.find(
-            p => p.id === event.playerId
-        );
-    if (!player) {
-        return;
-    }
-    player.events.push(event);
-}
 
 function processSpecialEvents(event) {
     switch(event.eventType){

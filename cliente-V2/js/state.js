@@ -4,7 +4,13 @@ const state = {
     matchType: "F11",
     matchRunning: false,
     currentSecond: 0,
+    
+    matchStartTimestamp: null,
+    pausedTime: 0,
+    pauseStartedTimestamp: null,
 
+    matchFinished: false,
+    
     homeGoals: 0,
     awayGoals: 0,
 
