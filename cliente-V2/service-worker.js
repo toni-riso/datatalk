@@ -32,12 +32,15 @@ const FILES_TO_CACHE = [
     "./icons/icon-512.png"
 ];
 
+
 self.addEventListener("install", event => {
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => cache.addAll(FILES_TO_CACHE))
+            .then(() => self.skipWaiting())
     );
 });
+
 self.addEventListener("fetch", event => {
     event.respondWith(
         caches.match(event.request)
@@ -47,3 +50,10 @@ self.addEventListener("fetch", event => {
             })
     );
 });
+
+self.addEventListener("activate", event => {
+    event.waitUntil(
+        clients.claim()
+    );
+});
+
