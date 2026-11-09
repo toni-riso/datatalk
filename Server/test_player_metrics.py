@@ -91,7 +91,30 @@ def test_participation_uses_actual_match_duration():
     )
 
     assert stats.iloc[0]["% Part."] == 100.0
+    assert stats.iloc[0]["Min"] == 30.0
     assert stats.iloc[0]["Acciones"] == 0
+
+
+def test_full_match_participation_is_100_percent_for_non_minute_duration():
+    players_df = pd.DataFrame([
+        {
+            "id": 1,
+            "dorsal": 9,
+            "name": "Pablo",
+            "position": "DC",
+            "starter": True,
+            "stints": [{"in": 0, "out": None}]
+        }
+    ])
+
+    stats = build_player_stats(
+        players_df,
+        pd.DataFrame(),
+        match_duration_seconds=661
+    )
+
+    assert stats.iloc[0]["Min"] == 11.0
+    assert stats.iloc[0]["% Part."] == 100.0
 
 
 def test_stint_minutes_are_converted_to_seconds_for_multiple_stints():
@@ -117,4 +140,4 @@ def test_stint_minutes_are_converted_to_seconds_for_multiple_stints():
 
     player = stats.iloc[0]
     assert player["Min"] == 56.7
-    assert player["% Part."] == 90.5
+    assert player["% Part."] == 90.4

@@ -60,11 +60,6 @@ function renderPlayerStats() {
             state.selectedPlayer
         );
     
-    const rating =
-        calculatePlayerRating(
-            state.selectedPlayer.id
-        );
-    
         container.innerHTML = `
 
         <div class="player-stats-header">
@@ -76,7 +71,6 @@ function renderPlayerStats() {
 
             <div class="player-summary">
                 <span class="minutes-played"> ⏱ ${minutesPlayed} min </span>
-                <span class="player-rating"> ⭐ ${rating}  </span>
             </div>
         </div>
         <div class="team-stats-section section-salida">
@@ -311,10 +305,10 @@ function calculateTeamStats() {
         rival_shot_target: 0,
         loss_finish: 0,
         goal_own: 0,
-        goal_rival: 0,
+        rival_goal: 0,
         assist: 0,
         corner_for: 0,
-        corner_against: 0,
+        rival_corner: 0,
         recovery_buildout: 0,
         recovery_build: 0,
         recovery_finish: 0,
@@ -323,9 +317,6 @@ function calculateTeamStats() {
         yellow: 0
     };
     state.events.forEach(event => {
-        if (event.team !== "home") {
-            return;
-        }
         if (
             stats[event.eventType] !==
             undefined
@@ -455,7 +446,7 @@ function renderTeamStats() {
                 </div>
                 <div class="stat-box">
                     <span class="stat-label"> ⚽ Goles rival</span>
-                    <span class="stat-value">  ${stats.goal_rival}</span>
+                    <span class="stat-value">  ${stats.rival_goal}</span>
                 </div>
             </div>
         </div>
@@ -473,7 +464,7 @@ function renderTeamStats() {
                 </div>
                 <div class="stat-box">
                     <span class="stat-label">🚩 Córners en contra</span>
-                    <span class="stat-value">${stats.corner_against}</span>
+                    <span class="stat-value">${stats.rival_corner}</span>
                 </div>
             </div>
         </div>
@@ -518,42 +509,4 @@ function renderTeamStats() {
             </div>
         </div>
     `;
-}
-
-function calculatePlayerRating(
-    playerId
-) {
-
-    const stats =calculatePlayerStats(playerId);
-
-    let rating = 5;
-
-    // CONSTRUCCIÓN
-
-    rating +=stats.dribble_ok * 0.3;
-    rating -=stats.dribble_bad * 0.3;
-
-    // PÉRDIDAS
-    rating -=stats.loss_buildout * 0.6;
-    rating -=stats.loss_build * 0.4;
-    rating -=stats.loss_finish * 0.2;
-
-    // FINALIZACIÓN
-    rating +=stats.shot_off * 0.1;
-    rating +=stats.shot_target * 0.5;
-    rating +=stats.goal_own * 2;
-
-    // DEFENSA
-    rating +=stats.recovery_buildout * 0.8;
-    rating +=stats.recovery_build * 0.5;
-    rating +=stats.recovery_finish * 0.3;
-
-    // DISCIPLINA
-    rating -=stats.foul_committed * 0.1;
-    rating +=stats.foul_received * 0.1;
-    rating -=stats.yellow * 1;
-
-    // LIMITAR ENTRE 0 Y 10
-    rating = Math.max(0,Math.min(10,rating));
-    return rating.toFixed(1);
 }

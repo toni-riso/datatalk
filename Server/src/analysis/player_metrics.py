@@ -123,10 +123,14 @@ def build_player_stats(
         yellow_cards = count_events(player_events,"yellow")
 
         # PLAYING TIME
-        minutes_played = calculate_minutes_played(player,match_duration_seconds)
+        exact_minutes_played = calculate_minutes_played(
+            player,
+            match_duration_seconds
+        )
+        minutes_played = round(exact_minutes_played, 1)
         participation = (
             round(
-                minutes_played /
+                exact_minutes_played /
                 match_duration_minutes * 100,
                 1
             )

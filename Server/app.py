@@ -1,5 +1,5 @@
+import json
 import streamlit as st
-import plotly.graph_objects as go
 
 from src.loaders.json_loader import load_match
 from src.analysis.player_metrics import build_player_stats
@@ -13,53 +13,48 @@ st.set_page_config(
 
 st.title("⚽ Data talk")
 
-uploaded_file = st.file_uploader(
-    "Selecciona un fichero JSON",
-    type=["json"]
-)
-
-if uploaded_file:
-
-    import tempfile
-
-    with tempfile.NamedTemporaryFile(
-        delete=False,
-        suffix=".json"
-    ) as tmp:
-
-        tmp.write(uploaded_file.read())
-
-        file_path = tmp.name
-
-    data = load_match(file_path)
-
+def render_match_dashboard(data):
     match_df = data["match"]
     players_df = data["players"]
     events_df = data["events"]
 
     match = match_df.iloc[0]
+    our_venue = match.get("venue")
+    if our_venue not in ("home", "away"):
+        st.warning(
+            "El JSON no indica si nuestro equipo jugó como local o visitante. "
+            "Para separar los eventos se asumirá que jugó como local."
+        )
+        our_venue = "home"
 
     player_stats = build_player_stats(
         players_df,
         events_df,
         match["currentSecond"]
     )
-    team_stats = build_team_stats(events_df)
+    team_stats = build_team_stats(events_df, our_venue)
 
     st.subheader(
         f"{match['homeTeam']} vs {match['awayTeam']}"
     )
 
+    if our_venue == "home":
+        home_goals = match["homeGoals"]
+        away_goals = match["awayGoals"]
+    else:
+        home_goals = match["awayGoals"]
+        away_goals = match["homeGoals"]
+
     col1, col2, col3, col4 = st.columns(4)
 
     col1.metric(
-        "Goles",
-        match["homeGoals"]
+        "Goles local",
+        home_goals
     )
 
     col2.metric(
-        "Encajados",
-        match["awayGoals"]
+        "Goles visitante",
+        away_goals
     )
 
     col3.metric(
@@ -89,27 +84,48 @@ if uploaded_file:
 
     st.subheader("Estadísticas del equipo")
 
-    team_stat_labels = {
-        "Goles": team_stats["goal_own"],
-        "Asistencias": team_stats["assist"],
-        "Tiros a puerta": team_stats["shot_target"],
-        "Tiros a puerta recibidos": team_stats["rival_shot_target"],
-        "Tiros fuera": team_stats["shot_off"],
-        "Regates completados": team_stats["dribble_ok"],
-        "Regates fallidos": team_stats["dribble_bad"],
-        "Recuperaciones": team_stats["recoveries"],
-        "Pérdidas": team_stats["losses"],
-        "Córners a favor": team_stats["corner_for"],
-        "Córners en contra": team_stats["corner_against"]
-    }
-    team_stats_items = list(team_stat_labels.items())
-    for start in range(0, len(team_stats_items), 5):
-        stat_columns = st.columns(5)
-        for column, (label, value) in zip(
-            stat_columns,
-            team_stats_items[start:start + 5]
-        ):
-            column.metric(label, value)
+    if team_stats["mismatched_team_labels"]:
+        st.warning(
+            f"{team_stats['mismatched_team_labels']} eventos tienen un campo "
+            "`team` que no coincide con su tipo de acción. Para estos casos, "
+            "la separación local/visitante se ha inferido del tipo de evento."
+        )
+    if team_stats["unassigned_events"]:
+        st.warning(
+            f"{team_stats['unassigned_events']} eventos no tienen un equipo "
+            "local/visitante asignable y no se incluyen en estas estadísticas."
+        )
+
+    def render_side_stats(side, team_name, heading):
+        st.markdown(f"### {heading}: {team_name}")
+        side_stats = team_stats[side]
+        labels = {
+            "Goles": side_stats["goals"],
+            "Tiros a puerta": side_stats["shots_target"],
+            "Tiros fuera": side_stats["shots_off"],
+            "Salidas exitosas": side_stats["buildout_success"],
+            "Salidas fallidas": side_stats["buildout_fail"],
+            "Regates completados": side_stats["dribble_ok"],
+            "Regates fallidos": side_stats["dribble_bad"],
+            "Recuperaciones": side_stats["recoveries"],
+            "Pérdidas": side_stats["losses"],
+            "Asistencias": side_stats["assists"],
+            "Córners": side_stats["corners_for"],
+            "Faltas cometidas": side_stats["fouls_committed"],
+            "Faltas recibidas": side_stats["fouls_received"],
+            "Amarillas": side_stats["yellow"]
+        }
+        items = list(labels.items())
+        for start in range(0, len(items), 5):
+            columns = st.columns(5)
+            for column, (label, value) in zip(
+                columns,
+                items[start:start + 5]
+            ):
+                column.metric(label, value)
+
+    render_side_stats("home", match["homeTeam"], "Local")
+    render_side_stats("away", match["awayTeam"], "Visitante")
 
     st.divider()
 
@@ -120,7 +136,7 @@ if uploaded_file:
         use_container_width=True,
         hide_index=True
     )
-    #Tabla con los eventos 
+    #Tabla con los eventos
     st.subheader("Eventos")
 
     st.dataframe(
@@ -200,50 +216,105 @@ if uploaded_file:
         st.write(f"**Cambios:** {player['Cambios']}")
 
         st.write(f"**Acciones Totales:** {player['Acciones']}")
-    
-    #Gráfico Radar-1
-    st.divider()
 
-    st.subheader("📊 Radar del jugador")
 
-    radar_categories = [
-        "Regate",
-        "Tiros a puerta",
-        "Defensa",
-        "Goles",
-        "Asistencias"
-    ]
 
-    radar_values = [
-        player["% Regate"],
-        player["% Tiros Puerta"],
-        min(player["Recuperaciones"] * 10, 100),
-        min(player["Goles"] * 20, 100),
-        min(player["Asistencias"] * 20, 100)
-    ]
+uploaded_files = st.file_uploader(
+    "Selecciona uno o varios ficheros JSON",
+    type=["json"],
+    accept_multiple_files=True
+)
 
-    fig = go.Figure()
+if uploaded_files:
+    loaded_matches = []
+    upload_errors = []
 
-    fig.add_trace(
-        go.Scatterpolar(
-            r=radar_values,
-            theta=radar_categories,
-            fill="toself",
-            name=selected_player
-        )
-    )
+    for file_index, uploaded_file in enumerate(uploaded_files, start=1):
+        try:
+            uploaded_file.seek(0)
+            data = load_match(uploaded_file)
+            if data["match"].empty:
+                raise ValueError("El fichero no contiene datos del partido.")
 
-    fig.update_layout(
-        polar=dict(
-            radialaxis=dict(
-                visible=True
+            match = data["match"].iloc[0]
+            required_fields = (
+                "date",
+                "homeTeam",
+                "awayTeam",
+                "homeGoals",
+                "awayGoals",
+                "currentSecond",
+                "competition",
+                "matchType",
+                "season",
+                "round"
             )
-        ),
-        showlegend=False,
-        height=500
-    )
+            missing_fields = [
+                field for field in required_fields
+                if field not in match.index
+            ]
+            if missing_fields:
+                raise ValueError(
+                    "Faltan campos del partido: "
+                    + ", ".join(missing_fields)
+                )
 
-    st.plotly_chart(
-        fig,
-        use_container_width=True
-    )
+            label = (
+                f"{file_index}. {uploaded_file.name} | {match['date']} | "
+                f"{match['homeTeam']} {match['homeGoals']}-"
+                f"{match['awayGoals']} {match['awayTeam']}"
+            )
+            loaded_matches.append({
+                "label": label,
+                "filename": uploaded_file.name,
+                "data": data,
+                "match": match
+            })
+        except (
+            json.JSONDecodeError,
+            KeyError,
+            TypeError,
+            ValueError,
+            UnicodeDecodeError
+        ) as error:
+            upload_errors.append(
+                f"{uploaded_file.name}: {error}"
+            )
+
+    for error in upload_errors:
+        st.error(f"No se pudo cargar el partido: {error}")
+
+    if not loaded_matches:
+        st.warning("No hay ningún partido válido para analizar.")
+    else:
+        st.success(
+            f"Partidos cargados correctamente: {len(loaded_matches)}"
+        )
+        st.subheader("Partidos disponibles")
+        st.dataframe(
+            [
+                {
+                    "Archivo": item["filename"],
+                    "Fecha": item["match"]["date"],
+                    "Local": item["match"]["homeTeam"],
+                    "Marcador": (
+                        f"{item['match']['homeGoals']}-"
+                        f"{item['match']['awayGoals']}"
+                    ),
+                    "Visitante": item["match"]["awayTeam"],
+                    "Temporada": item["match"]["season"],
+                    "Jornada": item["match"]["round"]
+                }
+                for item in loaded_matches
+            ],
+            use_container_width=True,
+            hide_index=True
+        )
+        selected_match_index = st.selectbox(
+            "Selecciona un partido para consultar sus estadísticas",
+            options=range(len(loaded_matches)),
+            format_func=lambda index: loaded_matches[index]["label"]
+        )
+        selected_data = loaded_matches[selected_match_index]["data"]
+
+        render_match_dashboard(selected_data)

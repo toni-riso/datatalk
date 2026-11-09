@@ -49,6 +49,16 @@ function loadState() {
         if (state.selectedPlayer) {
             delete state.selectedPlayer.events;
         }
+        state.events.forEach(event => {
+            if (event.eventType === "goal_rival") {
+                event.eventType = "rival_goal";
+            } else if (event.eventType === "corner_against") {
+                event.eventType = "rival_corner";
+            }
+            event.team = event.eventType.startsWith("rival_")
+                ? (state.matchData.venue === "away" ? "home" : "away")
+                : (state.matchData.venue === "away" ? "away" : "home");
+        });
         console.log(
             "✅ Estado recuperado"
         );

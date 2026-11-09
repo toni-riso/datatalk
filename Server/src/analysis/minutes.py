@@ -37,4 +37,4 @@ def calculate_minutes_played(player, match_duration_seconds):
 
         total_seconds += max(0, end - start)
 
-    return round(total_seconds / 60, 1)
+    return total_seconds / 60

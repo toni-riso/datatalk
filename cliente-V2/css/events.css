@@ -131,12 +131,6 @@ summary{
     font-weight:bold;
 }
 
-.player-rating{
-    font-size:1.5rem;
-    font-weight:bold;
-    color:#f9a825;
-}
-
 @media (max-width:768px){
     .player-summary{
         flex-direction:column;
@@ -205,10 +199,4 @@ summary{
     .stat-value{
         font-size:1.5rem;
     }
-}
-
-.player-rating{
-    font-size:1.8rem;
-    font-weight:bold;
-    color:#f9a825;
 }

@@ -6,21 +6,13 @@ function getEventTeam(eventType) {
     const venueElement =
         document.getElementById("venue");
     const venue =
-        venueElement
-            ? venueElement.value
-            : state.matchData.venue;
+        state.matchData.venue === "home" ||
+        state.matchData.venue === "away"
+            ? state.matchData.venue
+            : venueElement?.value;
     const ourTeam = venue === "away" ? "away" : "home";
     const opponentTeam = ourTeam === "home" ? "away" : "home";
-    const opponentEvents = [
-        "rival_buildout_success",
-        "rival_buildout_fail",
-        "rival_shot_off",
-        "rival_shot_target",
-        "goal_rival",
-        "corner_against"
-    ];
-
-    return opponentEvents.includes(eventType)
+    return eventType.startsWith("rival_")
         ? opponentTeam
         : ourTeam;
 }
@@ -35,9 +27,9 @@ function registerEvent(eventType) {
         "rival_buildout_fail",
         "rival_shot_off",
         "rival_shot_target",
-        "goal_rival",
+        "rival_goal",
         "corner_for",
-        "corner_against"
+        "rival_corner"
     ];
     
     const playerRequired =
@@ -79,9 +71,9 @@ function buildEvent(eventType) {
         "rival_shot_off",
         "rival_shot_target",
 
-        "goal_rival",
+        "rival_goal",
         "corner_for",
-        "corner_against"
+        "rival_corner"
 
     ];
 
@@ -123,7 +115,7 @@ function processSpecialEvents(event) {
             state.homeGoals++;
             updateScoreBoard();
             break;
-        case "goal_rival":
+        case "rival_goal":
             state.awayGoals++;
             updateScoreBoard();
             break;
@@ -176,13 +168,13 @@ function eventLabel(
             "❌ Pérdida finalización",
         goal_own:
             "⚽ Gol",
-        goal_rival:
+        rival_goal:
             "⚽ Gol rival",
         assist:
             "🅰️ Asistencia gol",
         corner_for:
             "🚩 Córner a favor",
-        corner_against:
+        rival_corner:
             "🚩 Córner en contra",
         recovery_buildout:
             "🔁 Recuperación salida",
@@ -285,7 +277,7 @@ function revertEventEffects(event) {
             }
             updateScoreBoard();
             break;
-        case "goal_rival":
+        case "rival_goal":
             state.awayGoals--;
             if (
                 state.awayGoals < 0
