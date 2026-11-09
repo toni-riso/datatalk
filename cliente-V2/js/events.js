@@ -12,7 +12,9 @@ function registerEvent(eventType) {
         "rival_buildout_fail",
         "rival_shot_off",
         "rival_shot_target",
-        "goal_rival"    
+        "goal_rival",
+        "corner_for",
+        "corner_against"
     ];
     
     const playerRequired =
@@ -54,7 +56,9 @@ function buildEvent(eventType) {
         "rival_shot_off",
         "rival_shot_target",
 
-        "goal_rival"
+        "goal_rival",
+        "corner_for",
+        "corner_against"
 
     ];
 
@@ -151,6 +155,12 @@ function eventLabel(
             "⚽ Gol",
         goal_rival:
             "⚽ Gol rival",
+        assist:
+            "🅰️ Asistencia gol",
+        corner_for:
+            "🚩 Córner a favor",
+        corner_against:
+            "🚩 Córner en contra",
         recovery_buildout:
             "🔁 Recuperación salida",
         recovery_build:

@@ -1,4 +1,4 @@
-const CACHE_NAME = "data-talk-v2";
+const CACHE_NAME = "data-talk-v3";
 
 const FILES_TO_CACHE = [
 
@@ -56,4 +56,3 @@ self.addEventListener("activate", event => {
         clients.claim()
     );
 });
-

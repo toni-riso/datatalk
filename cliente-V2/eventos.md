@@ -350,6 +350,17 @@ Gol
 ⚽ Gol
 ```
 
+## 🅰️ Asistencia de gol
+
+### Registrar cuando
+
+Un jugador de nuestro equipo da el último pase o centro que permite marcar un gol.
+
+### Registrar
+
+Seleccionar al jugador que da la asistencia y registrar el evento después de anotar el gol.
+No registrar asistencia en un gol sin pase de un compañero.
+
 ---
 
 ## ❌ Pérdida finalización
@@ -423,6 +434,18 @@ Gol
 
 ⚽ Gol rival
 ```
+
+---
+
+# 🚩 Balón parado
+
+## 🚩 Córner a favor
+
+Registrar cuando nuestro equipo obtiene un saque de esquina. Es un evento colectivo, sin jugador.
+
+## 🚩 Córner en contra
+
+Registrar cuando el rival obtiene un saque de esquina. Es un evento colectivo, sin jugador.
 
 ---
 

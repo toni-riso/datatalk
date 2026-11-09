@@ -35,10 +35,22 @@ Ante una acción dudosa, busca primero la fase del juego y después el resultado
 | Disparo fuera de portería | 🎯 Tiro fuera |
 | Disparo entre los tres palos | 🥅 Tiro a puerta |
 | Gol anotado | ⚽ Gol |
+| Un compañero da el pase o centro decisivo del gol | 🅰️ Asistencia gol |
 | Pérdida de balón en zona de finalización | ❌ Pérdida finalización |
 | Tiro rival fuera | 🎯 Rival tiro fuera |
 | Tiro rival a portería | 🥅 Rival tiro a puerta |
 | Gol rival | ⚽ Gol rival |
+
+---
+
+## 🚩 Balón parado
+
+| Situación | Evento |
+|------------|---------|
+| Nuestro equipo obtiene un saque de esquina | 🚩 Córner a favor |
+| El rival obtiene un saque de esquina | 🚩 Córner en contra |
+
+Registrar los córners como eventos colectivos, sin seleccionar jugador. Para una asistencia, seleccionar al jugador que da el pase decisivo y registrar el evento después del gol.
 
 ---
 

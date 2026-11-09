@@ -9,6 +9,7 @@ function calculatePlayerStats(playerId) {
         shot_target: 0,
         loss_finish: 0,
         goal_own: 0,
+        assist: 0,
         recovery_buildout: 0,
         recovery_build: 0,
         recovery_finish: 0,
@@ -163,6 +164,15 @@ function renderPlayerStats() {
                         ${stats.goal_own}
                     </span>
                 </div>
+
+                <div class="stat-box">
+                    <span class="stat-label">
+                        🅰️ Asistencias
+                    </span>
+                    <span class="stat-value">
+                        ${stats.assist}
+                    </span>
+                </div>
     
                 <div class="stat-box">
                     <span class="stat-label">
@@ -302,6 +312,9 @@ function calculateTeamStats() {
         loss_finish: 0,
         goal_own: 0,
         goal_rival: 0,
+        assist: 0,
+        corner_for: 0,
+        corner_against: 0,
         recovery_buildout: 0,
         recovery_build: 0,
         recovery_finish: 0,
@@ -443,6 +456,24 @@ function renderTeamStats() {
                 <div class="stat-box">
                     <span class="stat-label"> ⚽ Goles rival</span>
                     <span class="stat-value">  ${stats.goal_rival}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="team-stats-section">
+            <h3>Balón parado</h3>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <span class="stat-label">🅰️ Asistencias</span>
+                    <span class="stat-value">${stats.assist}</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">🚩 Córners a favor</span>
+                    <span class="stat-value">${stats.corner_for}</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">🚩 Córners en contra</span>
+                    <span class="stat-value">${stats.corner_against}</span>
                 </div>
             </div>
         </div>
