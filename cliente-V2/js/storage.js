@@ -43,6 +43,12 @@ function loadState() {
             state,
             restoredState
         );
+        state.players.forEach(
+            player => delete player.events
+        );
+        if (state.selectedPlayer) {
+            delete state.selectedPlayer.events;
+        }
         console.log(
             "✅ Estado recuperado"
         );

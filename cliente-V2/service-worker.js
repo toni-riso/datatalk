@@ -1,4 +1,4 @@
-const CACHE_NAME = "data-talk-v3";
+const CACHE_NAME = "data-talk-v4";
 
 const FILES_TO_CACHE = [
 

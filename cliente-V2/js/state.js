@@ -54,7 +54,6 @@ function createPlayer(
         minutesPlayed: 0,
         yellowCards: 0,
         entryMinute: null,
-        exitMinute: null,
-        events: []
+        exitMinute: null
     };
 }

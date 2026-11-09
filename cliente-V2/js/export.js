@@ -71,7 +71,12 @@ function buildExportData() {
                 state.awayGoals
         },
         players:
-            state.players,
+            state.players.map(
+                player => {
+                    const { events, ...playerData } = player;
+                    return playerData;
+                }
+            ),
         events:
             state.events
     };

@@ -116,8 +116,7 @@ function createPlayer(
         starter: false,
         active: false,
         yellowCards: 0,
-        stints: [],
-        events: []
+        stints: []
     };
 }
 
@@ -414,8 +413,7 @@ function parseLineupText(text) {
             starter: isStarter,
             active: false,
             yellowCards: 0,
-            stints: [],
-            events: []
+            stints: []
         };          
         state.players.push(
             player
