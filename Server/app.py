@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 
 from src.loaders.json_loader import load_match
 from src.analysis.player_metrics import build_player_stats
+from src.analysis.team_metrics import build_team_stats
 
 
 st.set_page_config(
@@ -41,9 +42,9 @@ if uploaded_file:
     player_stats = build_player_stats(
         players_df,
         events_df,
-        match["currentSecond"],
-        match["matchType"]
+        match["currentSecond"]
     )
+    team_stats = build_team_stats(events_df)
 
     st.subheader(
         f"{match['homeTeam']} vs {match['awayTeam']}"
@@ -83,6 +84,32 @@ if uploaded_file:
             "Jornada": match["round"]
         }
     )
+
+    st.divider()
+
+    st.subheader("Estadísticas del equipo")
+
+    team_stat_labels = {
+        "Goles": team_stats["goal_own"],
+        "Asistencias": team_stats["assist"],
+        "Tiros a puerta": team_stats["shot_target"],
+        "Tiros a puerta recibidos": team_stats["rival_shot_target"],
+        "Tiros fuera": team_stats["shot_off"],
+        "Regates completados": team_stats["dribble_ok"],
+        "Regates fallidos": team_stats["dribble_bad"],
+        "Recuperaciones": team_stats["recoveries"],
+        "Pérdidas": team_stats["losses"],
+        "Córners a favor": team_stats["corner_for"],
+        "Córners en contra": team_stats["corner_against"]
+    }
+    team_stats_items = list(team_stat_labels.items())
+    for start in range(0, len(team_stats_items), 5):
+        stat_columns = st.columns(5)
+        for column, (label, value) in zip(
+            stat_columns,
+            team_stats_items[start:start + 5]
+        ):
+            column.metric(label, value)
 
     st.divider()
 
@@ -131,7 +158,6 @@ if uploaded_file:
     col1.metric("Minutos", player["Min"])
     col1.metric("% Participación", player["% Part."])
 
-    col2.metric("% Pase", player["% Pase"])
     col2.metric("% Regate", player["% Regate"])
 
     col3.metric("Tiros", player["Tiros"])
@@ -148,10 +174,6 @@ if uploaded_file:
 
         st.markdown("### ⚽ Juego ofensivo")
 
-        st.write(f"**Pases OK:** {player['Pases OK']}")
-        st.write(f"**Pases KO:** {player['Pases KO']}")
-        st.write(f"**% Pase:** {player['% Pase']}")
-
         st.write(f"**Regates OK:** {player['Regates OK']}")
         st.write(f"**Regates KO:** {player['Regates KO']}")
         st.write(f"**% Regate:** {player['% Regate']}")
@@ -162,6 +184,7 @@ if uploaded_file:
         st.write(f"**% Tiros Puerta:** {player['% Tiros Puerta']}")
 
         st.write(f"**Goles:** {player['Goles']}")
+        st.write(f"**Asistencias:** {player['Asistencias']}")
 
     with col2:
 
@@ -177,7 +200,6 @@ if uploaded_file:
         st.write(f"**Cambios:** {player['Cambios']}")
 
         st.write(f"**Acciones Totales:** {player['Acciones']}")
-        st.write(f"**Acciones/Min:** {player['Acc/Min']}")
     
     #Gráfico Radar-1
     st.divider()
@@ -185,19 +207,19 @@ if uploaded_file:
     st.subheader("📊 Radar del jugador")
 
     radar_categories = [
-        "Pase",
         "Regate",
-        "Finalización",
+        "Tiros a puerta",
         "Defensa",
-        "Gol"
+        "Goles",
+        "Asistencias"
     ]
 
     radar_values = [
-        player["% Pase"],
         player["% Regate"],
         player["% Tiros Puerta"],
         min(player["Recuperaciones"] * 10, 100),
-        min(player["Goles"] * 20, 100)
+        min(player["Goles"] * 20, 100),
+        min(player["Asistencias"] * 20, 100)
     ]
 
     fig = go.Figure()

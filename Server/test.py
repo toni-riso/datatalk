@@ -13,8 +13,7 @@ events_df = data["events"]
 player_stats = build_player_stats(
     players_df,
     events_df,
-    match_df.iloc[0]["currentSecond"],
-    match_df.iloc[0]["matchType"]
+    match_df.iloc[0]["currentSecond"]
 )
 import pandas as pd
 

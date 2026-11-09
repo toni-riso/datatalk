@@ -7,7 +7,7 @@ def count_events(events_df, event_type):
     """
     Cuenta eventos de un determinado tipo.
     """
-    if events_df.empty:
+    if events_df.empty or "eventType" not in events_df:
         return 0
     return len(
         events_df[
@@ -15,18 +15,6 @@ def count_events(events_df, event_type):
         ]
     )
 
-
-def get_match_duration_minutes(match_type):
-    """
-    Devuelve la duración reglamentaria
-    del partido en minutos.
-    """
-
-    if match_type == "F11":
-        return 70
-    if match_type == "F8":
-        return 60
-    return 0
 
 def count_substitutions(player):
     """
@@ -47,8 +35,7 @@ def count_substitutions(player):
 def build_player_stats(
     players_df,
     events_df,
-    match_duration_seconds,
-    match_type
+    match_duration_seconds
 ):
     """
     Genera estadísticas individuales
@@ -56,34 +43,32 @@ def build_player_stats(
     """
     #print(sorted(events_df["eventType"].unique()))
     stats = []
-    match_duration_minutes = get_match_duration_minutes(match_type)
+    match_duration_minutes = match_duration_seconds / 60
 
     for _, player in players_df.iterrows():
-
-        player_events = events_df[
-            events_df["playerId"] == player["id"]
-        ]
-        print(player["name"],player["id"])
-        print(player_events[["eventType"]])
-        
-        # PASSES
-        passes_ok = count_events(player_events,"pass_ok")
-        passes_bad = count_events(player_events,"pass_bad")
-        total_passes = passes_ok + passes_bad
-
-        pass_accuracy = (
-            round(
-                passes_ok / total_passes * 100,
-                1
-            )
-            if total_passes > 0
-            else 0.0
-        )
+        if events_df.empty or "playerId" not in events_df:
+            player_events = events_df.iloc[0:0]
+        else:
+            player_events = events_df[
+                events_df["playerId"] == player["id"]
+            ]
 
         # SHOOTING
-        shots_total = count_events(player_events,"shot")
-        shots_target = count_events(player_events,"shot_target")
-        shots_off_target = max(0,shots_total - shots_target)
+        goals = count_events(player_events, "goal_own")
+        shots_target = (
+            count_events(player_events, "shot_target") +
+            goals
+        )
+        shots_off_target = count_events(player_events, "shot_off")
+        legacy_shots = count_events(player_events, "shot")
+        shots_total = max(
+            legacy_shots,
+            shots_target + shots_off_target
+        )
+        shots_off_target = max(
+            shots_off_target,
+            shots_total - shots_target
+        )
         shot_accuracy = (
             round(
                 shots_target / shots_total * 100,
@@ -92,12 +77,30 @@ def build_player_stats(
             if shots_total > 0
             else 0.0
         )
-                                   
-        goals = count_events(player_events,"goal_own")
+
+        assists = count_events(player_events, "assist")
 
         # DEFENSIVE
-        recoveries = count_events(player_events,"recovery")
-        losses = count_events(player_events,"loss")
+        recoveries = sum(
+            count_events(player_events, event_type)
+            for event_type in (
+                "recovery_buildout",
+                "recovery_build",
+                "recovery_finish"
+            )
+        )
+        if recoveries == 0:
+            recoveries = count_events(player_events, "recovery")
+        losses = sum(
+            count_events(player_events, event_type)
+            for event_type in (
+                "loss_buildout",
+                "loss_build",
+                "loss_finish"
+            )
+        )
+        if losses == 0:
+            losses = count_events(player_events, "loss")
 
         # DRIBBLES
         dribbles_ok = count_events(player_events,"dribble_ok")
@@ -136,15 +139,6 @@ def build_player_stats(
 
         # ACTIVITY
         total_actions = len(player_events)
-        actions_per_minute = (
-            round(
-                total_actions / minutes_played,
-                2
-            )
-            if minutes_played > 0
-            else 0.0
-        )
-
         stats.append({
 
             "Dorsal": player["dorsal"],
@@ -156,10 +150,6 @@ def build_player_stats(
             "Min": minutes_played,
             "% Part.": participation,
 
-            "Pases OK": passes_ok,
-            "Pases KO": passes_bad,
-            "% Pase": pass_accuracy,
-
             "Regates OK": dribbles_ok,
             "Regates KO": dribbles_bad,
             "% Regate": dribble_accuracy,
@@ -170,6 +160,7 @@ def build_player_stats(
             "% Tiros Puerta": shot_accuracy,
 
             "Goles": goals,
+            "Asistencias": assists,
 
             "Recuperaciones": recoveries,
             "Pérdidas": losses,       
@@ -181,9 +172,7 @@ def build_player_stats(
 
             "Cambios": substitutions,
 
-
-            "Acciones": total_actions,
-            "Acc/Min": actions_per_minute
+            "Acciones": total_actions
         })
 
     if not stats:

@@ -20,6 +20,7 @@ function initApp(){
     initializeNewMatchButton();
     renderTeamStats();
     initializeMatchSettings();
+    initializeVenueSetting();
     initializeExportButton();
 }
 
@@ -88,6 +89,29 @@ function initializeMatchSettings() {
         }
     );
 }
+
+function initializeVenueSetting() {
+    const venue =
+        document.getElementById("venue");
+    if (!venue) {
+        return;
+    }
+
+    if (
+        state.matchData.venue === "home" ||
+        state.matchData.venue === "away"
+    ) {
+        venue.value = state.matchData.venue;
+    } else {
+        state.matchData.venue = venue.value;
+    }
+
+    venue.addEventListener("change", () => {
+        state.matchData.venue = venue.value;
+        saveState();
+    });
+}
+
 if (
     "serviceWorker"
     in navigator

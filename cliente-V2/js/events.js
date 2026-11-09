@@ -2,6 +2,29 @@
 
 let eventCounter = 1;
 
+function getEventTeam(eventType) {
+    const venueElement =
+        document.getElementById("venue");
+    const venue =
+        venueElement
+            ? venueElement.value
+            : state.matchData.venue;
+    const ourTeam = venue === "away" ? "away" : "home";
+    const opponentTeam = ourTeam === "home" ? "away" : "home";
+    const opponentEvents = [
+        "rival_buildout_success",
+        "rival_buildout_fail",
+        "rival_shot_off",
+        "rival_shot_target",
+        "goal_rival",
+        "corner_against"
+    ];
+
+    return opponentEvents.includes(eventType)
+        ? opponentTeam
+        : ourTeam;
+}
+
 function registerEvent(eventType) {
     // Para eventos de jugador es obligatorio
     // tener un jugador seleccionado
@@ -70,7 +93,7 @@ function buildEvent(eventType) {
         matchSecond:state.currentSecond,
         minute:minute,
         second:second,
-        team:state.activeTeam,
+        team:getEventTeam(eventType),
 
         playerId:
             requiresPlayer
@@ -192,7 +215,7 @@ function registerSubstitutionEvent(
         minute:
             getCurrentMinute(),
         team:
-            "home",
+            getEventTeam("substitution"),
         eventType:
             "substitution",
         playerOut:
