@@ -3,6 +3,7 @@ import streamlit as st
 
 from src.loaders.json_loader import load_match
 from src.analysis.player_metrics import build_player_stats
+from src.analysis.season_metrics import build_season_stats
 from src.analysis.team_metrics import build_team_stats
 
 
@@ -12,6 +13,85 @@ st.set_page_config(
 )
 
 st.title("⚽ Data talk")
+
+
+def render_season_dashboard(matches):
+    season_stats = build_season_stats(matches)
+    seasons = sorted({
+        str(item["match"].get("season", "Sin temporada"))
+        for item in matches
+    })
+
+    st.subheader("Temporada hasta hoy")
+    st.caption(
+        f"Acumulado de {season_stats['matches']} partidos cargados"
+    )
+    if len(seasons) > 1:
+        st.info(
+            "Los archivos cargados pertenecen a distintas temporadas "
+            f"({', '.join(seasons)}); se incluyen todos en este acumulado."
+        )
+
+    columns = st.columns(6)
+    for column, (label, value) in zip(
+        columns,
+        (
+            ("Partidos", season_stats["matches"]),
+            ("Ganados", season_stats["wins"]),
+            ("Empatados", season_stats["draws"]),
+            ("Perdidos", season_stats["losses"]),
+            ("Goles a favor", season_stats["goals_for"]),
+            ("Goles en contra", season_stats["goals_against"])
+        )
+    ):
+        column.metric(label, value)
+
+    team_labels = {
+        "Goles": "goals",
+        "Tiros a puerta": "shots_target",
+        "Tiros fuera": "shots_off",
+        "Salidas exitosas": "buildout_success",
+        "Salidas fallidas": "buildout_fail",
+        "Regates completados": "dribble_ok",
+        "Regates fallidos": "dribble_bad",
+        "Recuperaciones": "recoveries",
+        "Pérdidas": "losses",
+        "Asistencias": "assists",
+        "Córners": "corners_for",
+        "Faltas cometidas": "fouls_committed",
+        "Faltas recibidas": "fouls_received",
+        "Amarillas": "yellow"
+    }
+
+    st.subheader("Estadísticas acumuladas del equipo")
+    for heading, key in (
+        ("Nuestro equipo", "team"),
+        ("Rivales", "opponent")
+    ):
+        st.markdown(f"### {heading}")
+        items = [
+            (label, season_stats[key].get(metric, 0))
+            for label, metric in team_labels.items()
+        ]
+        for start in range(0, len(items), 5):
+            columns = st.columns(5)
+            for column, (label, value) in zip(
+                columns,
+                items[start:start + 5]
+            ):
+                column.metric(label, value)
+
+    st.subheader("Estadísticas acumuladas de jugadores")
+    st.caption(
+        "Los minutos y acciones se suman; los porcentajes se recalculan "
+        "sobre el total de partidos cargados."
+    )
+    st.dataframe(
+        season_stats["players"],
+        use_container_width=True,
+        hide_index=True
+    )
+
 
 def render_match_dashboard(data):
     match_df = data["match"]
@@ -219,14 +299,38 @@ def render_match_dashboard(data):
 
 
 
-uploaded_files = st.file_uploader(
-    "Selecciona uno o varios ficheros JSON",
-    type=["json"],
-    accept_multiple_files=True
+upload_key = "dashboard_match_files"
+selection_key = "dashboard_match_selection"
+season_option = "Temporada hasta hoy"
+previous_uploads = st.session_state.get(upload_key, []) or []
+previous_selection = st.session_state.get(
+    selection_key,
+    season_option
 )
+if previous_selection != season_option and not isinstance(
+    previous_selection,
+    str
+):
+    previous_selection = season_option
 
-if uploaded_files:
-    loaded_matches = []
+section_title = (
+    f"Partidos cargados: {len(previous_uploads)}"
+    f" | Selección: {previous_selection}"
+)
+selected_match = None
+loaded_matches = []
+
+with st.expander(
+    section_title,
+    expanded=not bool(previous_uploads)
+):
+    uploaded_files = st.file_uploader(
+        "Carga uno o varios partidos (JSON)",
+        type=["json"],
+        accept_multiple_files=True,
+        key=upload_key
+    )
+    uploaded_files = uploaded_files or []
     upload_errors = []
 
     for file_index, uploaded_file in enumerate(uploaded_files, start=1):
@@ -285,12 +389,11 @@ if uploaded_files:
         st.error(f"No se pudo cargar el partido: {error}")
 
     if not loaded_matches:
-        st.warning("No hay ningún partido válido para analizar.")
+        st.info("Carga uno o varios ficheros de partidos para empezar.")
     else:
         st.success(
             f"Partidos cargados correctamente: {len(loaded_matches)}"
         )
-        st.subheader("Partidos disponibles")
         st.dataframe(
             [
                 {
@@ -310,11 +413,32 @@ if uploaded_files:
             use_container_width=True,
             hide_index=True
         )
-        selected_match_index = st.selectbox(
-            "Selecciona un partido para consultar sus estadísticas",
-            options=range(len(loaded_matches)),
-            format_func=lambda index: loaded_matches[index]["label"]
-        )
-        selected_data = loaded_matches[selected_match_index]["data"]
+        match_options = [
+            season_option,
+            *[item["label"] for item in loaded_matches]
+        ]
+        if st.session_state.get(selection_key) not in match_options:
+            st.session_state[selection_key] = season_option
 
-        render_match_dashboard(selected_data)
+        selected_label = st.selectbox(
+            "Partido para mostrar estadísticas",
+            options=match_options,
+            key=selection_key
+        )
+        if selected_label == season_option:
+            selected_match = (season_option, loaded_matches)
+        else:
+            selected_match = next(
+                (
+                    item
+                    for item in loaded_matches
+                    if item["label"] == selected_label
+                ),
+                None
+            )
+
+if selected_match is not None:
+    if isinstance(selected_match, tuple):
+        render_season_dashboard(selected_match[1])
+    else:
+        render_match_dashboard(selected_match["data"])
