@@ -16,15 +16,19 @@
     }
 
     .player-btn{
+        width:80%;
         min-height:64px;
         padding:6px;
         font-size:0.85rem;
+        justify-self:center;
     }
 
     .event-grid button{
+        width:80%;
         min-height:64px;
         padding:6px;
         font-size:0.9rem;
+        justify-self:center;
     }
 
 }
