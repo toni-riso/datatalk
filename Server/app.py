@@ -3,7 +3,16 @@ import streamlit as st
 
 from src.loaders.json_loader import load_match
 from src.analysis.player_metrics import build_player_stats
-from src.analysis.season_metrics import build_season_stats
+from src.analysis.match_timeline import build_match_timeline
+from src.analysis.match_report import (
+    build_match_comparison,
+    get_score_discrepancies
+)
+from src.analysis.season_metrics import (
+    build_season_stats,
+    filter_matches,
+    get_match_filter_value
+)
 from src.analysis.team_metrics import build_team_stats
 
 
@@ -16,32 +25,125 @@ st.title("⚽ Data talk")
 
 
 def render_season_dashboard(matches):
-    season_stats = build_season_stats(matches)
-    seasons = sorted({
-        str(item["match"].get("season", "Sin temporada"))
+    all_seasons = sorted({
+        get_match_filter_value(item["match"], "season")
         for item in matches
     })
+    all_seasons_option = "Todas las temporadas"
+    season_options = [all_seasons_option, *all_seasons]
+    latest_season = all_seasons[-1] if all_seasons else all_seasons_option
+    default_season = (
+        st.session_state.get("season_filter", latest_season)
+    )
+    if default_season not in season_options:
+        default_season = latest_season
+    filters_changed = (
+        st.session_state.get("season_filter") != default_season
+    )
+    st.session_state["season_filter"] = default_season
+    selected_season = st.selectbox(
+        "Temporada",
+        season_options,
+        index=season_options.index(default_season),
+        key="season_filter"
+    )
+
+    season_matches = filter_matches(
+        matches,
+        season=(
+            None
+            if selected_season == all_seasons_option
+            else selected_season
+        )
+    )
+    all_competitions_option = "Todas las competiciones"
+    competitions = sorted({
+        get_match_filter_value(item["match"], "competition")
+        for item in season_matches
+    })
+    competition_options = [all_competitions_option, *competitions]
+    default_competition = st.session_state.get(
+        "competition_filter",
+        all_competitions_option
+    )
+    if default_competition not in competition_options:
+        default_competition = all_competitions_option
+    filters_changed = filters_changed or (
+        st.session_state.get("competition_filter") != default_competition
+    )
+    st.session_state["competition_filter"] = default_competition
+    if filters_changed:
+        st.rerun()
+
+    selected_competition = st.selectbox(
+        "Competición",
+        competition_options,
+        index=competition_options.index(default_competition),
+        key="competition_filter"
+    )
+
+    filtered_matches = filter_matches(
+        matches,
+        season=(
+            None
+            if selected_season == all_seasons_option
+            else selected_season
+        ),
+        competition=(
+            None
+            if selected_competition == all_competitions_option
+            else selected_competition
+        )
+    )
+    if not filtered_matches:
+        st.info("No hay partidos para los filtros seleccionados.")
+        return
+
+    season_stats = build_season_stats(filtered_matches)
 
     st.subheader("Temporada hasta hoy")
     st.caption(
         f"Acumulado de {season_stats['matches']} partidos cargados"
     )
-    if len(seasons) > 1:
-        st.info(
-            "Los archivos cargados pertenecen a distintas temporadas "
-            f"({', '.join(seasons)}); se incluyen todos en este acumulado."
-        )
 
-    columns = st.columns(6)
+    columns = st.columns(5)
     for column, (label, value) in zip(
         columns,
         (
             ("Partidos", season_stats["matches"]),
-            ("Ganados", season_stats["wins"]),
-            ("Empatados", season_stats["draws"]),
-            ("Perdidos", season_stats["losses"]),
+            (
+                "Balance G-E-P",
+                f"{season_stats['wins']}-{season_stats['draws']}-"
+                f"{season_stats['losses']}"
+            ),
+            ("Puntos", season_stats["points"]),
             ("Goles a favor", season_stats["goals_for"]),
             ("Goles en contra", season_stats["goals_against"])
+        )
+    ):
+        column.metric(label, value)
+
+    columns = st.columns(5)
+    for column, (label, value) in zip(
+        columns,
+        (
+            ("Diferencia de goles", season_stats["goal_difference"]),
+            (
+                "Prom. goles a favor",
+                round(season_stats["goals_for"] / season_stats["matches"], 2)
+            ),
+            (
+                "Prom. goles en contra",
+                round(
+                    season_stats["goals_against"] / season_stats["matches"],
+                    2
+                )
+            ),
+            ("Porterías a cero", season_stats["clean_sheets"]),
+            (
+                "Puntos por partido",
+                round(season_stats["points"] / season_stats["matches"], 2)
+            )
         )
     ):
         column.metric(label, value)
@@ -63,34 +165,34 @@ def render_season_dashboard(matches):
         "Amarillas": "yellow"
     }
 
-    st.subheader("Estadísticas acumuladas del equipo")
     for heading, key in (
-        ("Nuestro equipo", "team"),
-        ("Rivales", "opponent")
+        ("Estadísticas acumuladas de nuestro equipo", "team"),
+        ("Estadísticas acumuladas de los rivales", "opponent")
     ):
-        st.markdown(f"### {heading}")
-        items = [
-            (label, season_stats[key].get(metric, 0))
-            for label, metric in team_labels.items()
-        ]
-        for start in range(0, len(items), 5):
-            columns = st.columns(5)
-            for column, (label, value) in zip(
-                columns,
-                items[start:start + 5]
-            ):
-                column.metric(label, value)
+        with st.expander(heading, expanded=False):
+            items = [
+                (label, season_stats[key].get(metric, 0))
+                for label, metric in team_labels.items()
+            ]
+            for start in range(0, len(items), 5):
+                columns = st.columns(5)
+                for column, (label, value) in zip(
+                    columns,
+                    items[start:start + 5]
+                ):
+                    column.metric(label, value)
 
-    st.subheader("Estadísticas acumuladas de jugadores")
-    st.caption(
-        "Los minutos y acciones se suman; los porcentajes se recalculan "
-        "sobre el total de partidos cargados."
-    )
-    st.dataframe(
-        season_stats["players"],
-        use_container_width=True,
-        hide_index=True
-    )
+    with st.expander("Estadísticas acumuladas de jugadores", expanded=False):
+        st.caption(
+            "Los minutos y acciones se suman; los porcentajes se recalculan "
+            "sobre el total de partidos cargados. Haz clic en un encabezado "
+            "para ordenar ascendente o descendentemente."
+        )
+        st.dataframe(
+            season_stats["players"],
+            use_container_width=True,
+            hide_index=True
+        )
 
 
 def render_match_dashboard(data):
@@ -124,6 +226,18 @@ def render_match_dashboard(data):
     else:
         home_goals = match["awayGoals"]
         away_goals = match["homeGoals"]
+
+    discrepancies = get_score_discrepancies(
+        team_stats,
+        home_goals,
+        away_goals
+    )
+    for discrepancy in discrepancies:
+        st.warning(
+            f"El marcador del {discrepancy['side'].lower()} indica "
+            f"{discrepancy['score_goals']} goles, pero los eventos registran "
+            f"{discrepancy['event_goals']}. Revisa los goles anotados."
+        )
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -160,9 +274,17 @@ def render_match_dashboard(data):
         }
     )
 
-    st.divider()
+    st.subheader("Resumen comparativo")
+    st.caption(
+        "Los porcentajes muestran también el volumen usado para calcularlos. "
+        "— indica que no hay intentos registrados."
+    )
+    st.dataframe(
+        build_match_comparison(team_stats),
+        use_container_width=True
+    )
 
-    st.subheader("Estadísticas del equipo")
+    st.divider()
 
     if team_stats["mismatched_team_labels"]:
         st.warning(
@@ -177,7 +299,7 @@ def render_match_dashboard(data):
         )
 
     def render_side_stats(side, team_name, heading):
-        st.markdown(f"### {heading}: {team_name}")
+        st.markdown(f"#### {heading}: {team_name}")
         side_stats = team_stats[side]
         labels = {
             "Goles": side_stats["goals"],
@@ -204,98 +326,81 @@ def render_match_dashboard(data):
             ):
                 column.metric(label, value)
 
-    render_side_stats("home", match["homeTeam"], "Local")
-    render_side_stats("away", match["awayTeam"], "Visitante")
+    with st.expander("Estadísticas del equipo", expanded=False):
+        render_side_stats("home", match["homeTeam"], "Local")
+        render_side_stats("away", match["awayTeam"], "Visitante")
 
-    st.divider()
+    with st.expander("Estadísticas de jugadores", expanded=False):
+        st.caption(
+            "Haz clic en el encabezado de una columna para ordenar "
+            "ascendente o descendentemente."
+        )
+        st.dataframe(
+            player_stats,
+            use_container_width=True,
+            hide_index=True
+        )
 
-    st.subheader("Estadísticas de jugadores")
-
-    st.dataframe(
-        player_stats,
-        use_container_width=True,
-        hide_index=True
-    )
-    #Tabla con los eventos
-    st.subheader("Eventos")
-
-    st.dataframe(
-        events_df,
-        use_container_width=True,
-        hide_index=True
-    )
+    with st.expander("Cronología de eventos principales", expanded=False):
+        timeline = build_match_timeline(events_df)
+        if timeline.empty:
+            st.info("Este partido no tiene eventos principales registrados.")
+        else:
+            st.dataframe(
+                timeline,
+                use_container_width=True,
+                hide_index=True,
+                height=min(620, 38 * (len(timeline) + 1))
+            )
     
-    #Barra lateral para elegir jugador
-    #selected_player = st.sidebar.selectbox(
-    #   "Jugador",
-    #    player_stats["Jugador"]
-    #)
-
     #Ficha individual jugador
     # ==================================================
     # FICHA DEL JUGADOR
     # ==================================================
 
-    st.divider()
+    with st.expander("Ficha individual del jugador", expanded=False):
+        selected_player = st.selectbox(
+            "Selecciona un jugador",
+            player_stats["Jugador"].tolist()
+        )
 
-    st.subheader("👤 Ficha del jugador")
-
-    selected_player = st.selectbox(
-        "Selecciona un jugador",
-        player_stats["Jugador"].tolist()
-    )
-
-    player = player_stats[
-        player_stats["Jugador"] == selected_player
+        player = player_stats[
+            player_stats["Jugador"] == selected_player
         ].iloc[0]
 
-    col1, col2, col3, col4 = st.columns(4)
+        col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Minutos", player["Min"])
-    col1.metric("% Participación", player["% Part."])
+        col1.metric("Minutos", player["Min"])
+        col1.metric("% Participación", player["% Part."])
+        col2.metric("% Regate", player["% Regate"])
+        col3.metric("Tiros", player["Tiros"])
+        col3.metric("% Tiros Puerta", player["% Tiros Puerta"])
+        col4.metric("Goles", player["Goles"])
+        col4.metric("Acciones", player["Acciones"])
 
-    col2.metric("% Regate", player["% Regate"])
+        col1, col2 = st.columns(2)
 
-    col3.metric("Tiros", player["Tiros"])
-    col3.metric("% Tiros Puerta", player["% Tiros Puerta"])
+        with col1:
+            st.markdown("### ⚽ Juego ofensivo")
+            st.write(f"**Regates OK:** {player['Regates OK']}")
+            st.write(f"**Regates KO:** {player['Regates KO']}")
+            st.write(f"**% Regate:** {player['% Regate']}")
+            st.write(f"**Tiros:** {player['Tiros']}")
+            st.write(f"**Tiros a Puerta:** {player['Tiros Puerta']}")
+            st.write(f"**Tiros Fuera:** {player['Tiros Fuera']}")
+            st.write(f"**% Tiros Puerta:** {player['% Tiros Puerta']}")
+            st.write(f"**Goles:** {player['Goles']}")
+            st.write(f"**Asistencias:** {player['Asistencias']}")
 
-    col4.metric("Goles", player["Goles"])
-    col4.metric("Acciones", player["Acciones"])
-
-    st.divider()
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        st.markdown("### ⚽ Juego ofensivo")
-
-        st.write(f"**Regates OK:** {player['Regates OK']}")
-        st.write(f"**Regates KO:** {player['Regates KO']}")
-        st.write(f"**% Regate:** {player['% Regate']}")
-
-        st.write(f"**Tiros:** {player['Tiros']}")
-        st.write(f"**Tiros Puerta:** {player['Tiros Puerta']}")
-        st.write(f"**Tiros Fuera:** {player['Tiros Fuera']}")
-        st.write(f"**% Tiros Puerta:** {player['% Tiros Puerta']}")
-
-        st.write(f"**Goles:** {player['Goles']}")
-        st.write(f"**Asistencias:** {player['Asistencias']}")
-
-    with col2:
-
-        st.markdown("### 🛡️ Juego defensivo")
-
-        st.write(f"**Recuperaciones:** {player['Recuperaciones']}")
-        st.write(f"**Pérdidas:** {player['Pérdidas']}")
-
-        st.write(f"**Faltas Cometidas:** {player['Faltas Com.']}")
-        st.write(f"**Faltas Recibidas:** {player['Faltas Rec.']}")
-
-        st.write(f"**Amarillas:** {player['Amarillas']}")
-        st.write(f"**Cambios:** {player['Cambios']}")
-
-        st.write(f"**Acciones Totales:** {player['Acciones']}")
+        with col2:
+            st.markdown("### 🛡️ Juego defensivo")
+            st.write(f"**Recuperaciones:** {player['Recuperaciones']}")
+            st.write(f"**Pérdidas:** {player['Pérdidas']}")
+            st.write(f"**Faltas Cometidas:** {player['Faltas Com.']}")
+            st.write(f"**Faltas Recibidas:** {player['Faltas Rec.']}")
+            st.write(f"**Amarillas:** {player['Amarillas']}")
+            st.write(f"**Cambios:** {player['Cambios']}")
+            st.write(f"**Acciones Totales:** {player['Acciones']}")
 
 
 
@@ -315,8 +420,17 @@ if previous_selection != season_option and not isinstance(
 
 section_title = (
     f"Partidos cargados: {len(previous_uploads)}"
-    f" | Selección: {previous_selection}"
 )
+if previous_selection == season_option:
+    selected_season = st.session_state.get("season_filter", "—")
+    selected_competition = st.session_state.get("competition_filter", "—")
+    section_title += (
+        f" | Selección: {season_option}"
+        f" | Temporada: {selected_season}"
+        f" | Competición: {selected_competition}"
+    )
+else:
+    section_title += f" | Selección: {previous_selection}"
 selected_match = None
 loaded_matches = []
 
