@@ -1,1 +1,9 @@
+Ejecutar en terminal:
 pip install -r requirements.txt
+
+Entrar en la carpeta Server y ejecutar la aplicación con Streamlit
+streamlit run app.py
+
+Abre la aplicación en tu navegador en la dirección mostrada, por ejemplo
+Local URL: http://localhost:8501
+Network URL: http://<tu-ip-local>:8501
