@@ -72,6 +72,31 @@ def test_current_client_events_are_counted_for_player():
     assert "Acc/Min" not in stats.columns
 
 
+def test_own_goal_alias_is_counted_for_player():
+    players_df = pd.DataFrame([
+        {
+            "id": 1,
+            "dorsal": 9,
+            "name": "Pablo",
+            "position": "DC",
+            "starter": True,
+            "stints": [{"in": 0, "out": None}]
+        }
+    ])
+    events_df = pd.DataFrame([
+        {"playerId": 1, "eventType": "own_goal"}
+    ])
+
+    stats = build_player_stats(
+        players_df,
+        events_df,
+        match_duration_seconds=600
+    )
+
+    assert stats.iloc[0]["Goles"] == 1
+    assert stats.iloc[0]["Tiros Puerta"] == 1
+
+
 def test_participation_uses_actual_match_duration():
     players_df = pd.DataFrame([
         {

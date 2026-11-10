@@ -56,10 +56,11 @@ def test_timeline_sorts_events_and_tracks_score():
 
 def test_timeline_supports_legacy_rival_goal_and_empty_events():
     events = pd.DataFrame([
+        {"minute": 0, "second": 20, "eventType": "own_goal"},
         {"minute": 0, "second": 40, "eventType": "goal_rival"}
     ])
 
     timeline = build_match_timeline(events)
 
-    assert timeline.iloc[0]["Marcador"] == "0-1"
+    assert timeline["Marcador"].tolist() == ["1-0", "1-1"]
     assert build_match_timeline(pd.DataFrame()).empty

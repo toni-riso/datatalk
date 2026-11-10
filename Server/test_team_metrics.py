@@ -51,6 +51,21 @@ def test_our_team_metrics_follow_venue_when_playing_away():
     assert stats["our_venue"] == "away"
 
 
+def test_own_goal_aliases_follow_declared_away_and_home_teams():
+    events_df = pd.DataFrame([
+        {"eventType": "own_goal", "team": "away"},
+        {"eventType": "rival_goal", "team": "home"}
+    ])
+
+    stats = build_team_stats(events_df, our_venue="away")
+
+    assert stats["away"]["goals"] == 1
+    assert stats["away"]["shots_target"] == 1
+    assert stats["home"]["goals"] == 1
+    assert stats["home"]["shots_target"] == 1
+    assert stats["mismatched_team_labels"] == 0
+
+
 def test_legacy_rival_event_type_overrides_stale_team_label():
     events_df = pd.DataFrame([
         {"eventType": "goal_rival", "team": "home"},

@@ -3,6 +3,7 @@ import pandas as pd
 
 TIMELINE_EVENTS = {
     "goal_own": ("⚽ Gol", "Nuestro equipo"),
+    "own_goal": ("⚽ Gol", "Nuestro equipo"),
     "rival_goal": ("⚽ Gol rival", "Rival"),
     "goal_rival": ("⚽ Gol rival", "Rival"),
     "shot_target": ("🎯 Tiro a puerta", "Nuestro equipo"),
@@ -67,7 +68,7 @@ def build_match_timeline(events_df):
 
     for event in timeline_events:
         event_type = event["eventType"]
-        if event_type == "goal_own":
+        if event_type in ("goal_own", "own_goal"):
             own_goals += 1
         elif event_type in ("rival_goal", "goal_rival"):
             rival_goals += 1

@@ -32,6 +32,7 @@ OPPONENT_EVENT_TYPES = {
 }
 
 LEGACY_EVENT_TYPES = {
+    "own_goal": "goal_own",
     "goal_rival": "rival_goal",
     "corner_against": "rival_corner"
 }
@@ -70,8 +71,8 @@ def build_team_stats(events_df, our_venue="home"):
     Event types from the client's perspective (``rival_`` prefix)
     are authoritative. The event's ``team`` field is used for unknown types
     and checked for inconsistencies, supporting older exports with stale
-    team labels. Historical ``goal_rival`` and ``corner_against`` values are
-    normalized to the current rival-prefixed names.
+    team labels. Historical ``own_goal``, ``goal_rival``, and
+    ``corner_against`` values are normalized to the current event names.
     """
     if our_venue not in ("home", "away"):
         raise ValueError("our_venue must be 'home' or 'away'")

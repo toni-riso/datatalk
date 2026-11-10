@@ -54,7 +54,10 @@ def build_player_stats(
             ]
 
         # SHOOTING
-        goals = count_events(player_events, "goal_own")
+        goals = (
+            count_events(player_events, "goal_own") +
+            count_events(player_events, "own_goal")
+        )
         shots_target = (
             count_events(player_events, "shot_target") +
             goals

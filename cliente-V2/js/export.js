@@ -39,6 +39,15 @@ function updateMatchData() {
 }
 
 function buildExportData() {
+    const ownTeam =
+        state.matchData.venue === "away"
+            ? "away"
+            : "home";
+    const opponentTeam =
+        ownTeam === "home"
+            ? "away"
+            : "home";
+
     return {
         exportedAt:
             new Date().toISOString(),
@@ -78,7 +87,22 @@ function buildExportData() {
                 }
             ),
         events:
-            state.events
+            state.events.map(event => {
+                let eventType = event.eventType;
+                if (eventType === "goal_own") {
+                    eventType = "own_goal";
+                } else if (eventType === "goal_rival") {
+                    eventType = "rival_goal";
+                }
+
+                return {
+                    ...event,
+                    eventType,
+                    team: eventType.startsWith("rival_")
+                        ? opponentTeam
+                        : ownTeam
+                };
+            })
     };
 }
 
