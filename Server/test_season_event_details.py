@@ -46,8 +46,8 @@ def test_season_event_totals_and_match_occurrences_follow_our_venue():
     assert details["Goles"]["values"] == [5, 2]
     assert details["Tiros"]["values"] == [5, 1]
     assert details["Salidas"]["values"] == [1, 0]
-    assert details["Recuperaciones"]["values"] == [1, 1, 0]
-    assert details["Pérdidas"]["values"] == [0, 1, 1]
+    assert details["Recuperaciones"]["values"] == [1, 1, 0, 0]
+    assert details["Pérdidas"]["values"] == [0, 1, 1, 0]
     assert details["Faltas"]["values"] == [1, 2]
 
     goals_by_match = details["Goles"]["matches"]
@@ -59,6 +59,44 @@ def test_season_event_totals_and_match_occurrences_follow_our_venue():
     assert details["Recuperaciones"]["matches"]["Cantidad"].sum() == 2
     assert details["Pérdidas"]["matches"]["Cantidad"].sum() == 2
     assert details["Faltas"]["matches"]["Cantidad"].sum() == 3
+
+
+def test_season_event_details_include_legacy_events_as_unspecified():
+    match = _loaded_match(
+        "home",
+        0,
+        0,
+        1,
+        [
+            {"eventType": "recovery_buildout", "team": "home"},
+            {"eventType": "recovery_build", "team": "home"},
+            {"eventType": "recovery_finish", "team": "home"},
+            {"eventType": "recovery", "team": "home"},
+            {"eventType": "loss_buildout", "team": "home"},
+            {"eventType": "loss_build", "team": "home"},
+            {"eventType": "loss_finish", "team": "home"},
+            {"eventType": "loss", "team": "home"}
+        ]
+    )
+
+    details = build_season_event_details([match])
+
+    assert details["Recuperaciones"]["labels"] == [
+        "Salida",
+        "Construcción",
+        "Finalización",
+        "Sin especificar"
+    ]
+    assert details["Recuperaciones"]["values"] == [1, 1, 1, 1]
+    assert details["Pérdidas"]["values"] == [1, 1, 1, 1]
+    assert details["Recuperaciones"]["matches"]["Cantidad"].sum() == 4
+    assert details["Pérdidas"]["matches"]["Cantidad"].sum() == 4
+    assert "Sin especificar" in set(
+        details["Recuperaciones"]["matches"]["Evento"]
+    )
+    assert "Sin especificar" in set(
+        details["Pérdidas"]["matches"]["Evento"]
+    )
 
 
 def test_empty_event_categories_have_empty_occurrence_tables():

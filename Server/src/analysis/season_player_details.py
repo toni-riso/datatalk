@@ -1,19 +1,25 @@
 import pandas as pd
 
-from src.analysis.player_event_details import (
-    build_player_event_details,
-    build_player_recovery_counts
-)
+from src.analysis.event_catalog import phase_metric_keys
+from src.analysis.player_event_details import build_player_details_by_id
 from src.analysis.season_event_details import format_match_label
 
 
-def build_season_player_details(matches, dorsal, player_name):
+def build_season_player_details(
+    matches,
+    dorsal,
+    player_name,
+    match_analyses=None
+):
     """Collect a player's phase counts and event timeline across matches."""
-    recovery_totals = [0, 0, 0, 0]
-    loss_totals = [0, 0, 0, 0]
+    if match_analyses is not None and len(match_analyses) != len(matches):
+        raise ValueError("match_analyses must align with matches")
+
+    recovery_totals = [0] * len(phase_metric_keys("recoveries"))
+    loss_totals = [0] * len(phase_metric_keys("losses"))
     timelines = []
 
-    for loaded_match in matches:
+    for index, loaded_match in enumerate(matches):
         data = loaded_match["data"]
         players = data["players"]
         player_rows = players[
@@ -28,40 +34,27 @@ def build_season_player_details(matches, dorsal, player_name):
         match = data["match"].iloc[0]
         match_name = format_match_label(match)
 
-        match_recoveries = build_player_recovery_counts(
-            events,
-            player_id,
-            (
-                "recovery_buildout",
-                "recovery_build",
-                "recovery_finish",
-                "recovery"
-            )
+        player_details = (
+            match_analyses[index]["player_details"].get(player_id)
+            if match_analyses is not None
+            else build_player_details_by_id(events, [player_id])[player_id]
         )
-        if sum(match_recoveries[:3]) == 0:
-            match_recoveries[:3] = [0, 0, 0]
-        else:
-            match_recoveries[3] = 0
+        if player_details is None:
+            continue
+
+        match_recoveries = player_details["recoveries"]
         recovery_totals = [
             total + current
             for total, current in zip(recovery_totals, match_recoveries)
         ]
 
-        match_losses = build_player_recovery_counts(
-            events,
-            player_id,
-            ("loss_buildout", "loss_build", "loss_finish", "loss")
-        )
-        if sum(match_losses[:3]) == 0:
-            match_losses[:3] = [0, 0, 0]
-        else:
-            match_losses[3] = 0
+        match_losses = player_details["losses"]
         loss_totals = [
             total + current
             for total, current in zip(loss_totals, match_losses)
         ]
 
-        timeline = build_player_event_details(events, player_id)
+        timeline = player_details["timeline"]
         if not timeline.empty:
             timeline.insert(0, "Partido", match_name)
             timelines.append(timeline)

@@ -1,39 +1,8 @@
 import pandas as pd
 
+from src.analysis.event_catalog import SEASON_EVENT_CATEGORIES
 from src.analysis.season_metrics import get_match_filter_value
 from src.analysis.team_metrics import build_team_stats
-
-
-SEASON_EVENT_CATEGORIES = {
-    "Goles": {
-        "labels": ("Goles a favor", "Goles en contra"),
-        "keys": ("goals_for", "goals_against")
-    },
-    "Tiros": {
-        "labels": ("Tiros a puerta", "Tiros fuera"),
-        "keys": ("shots_target", "shots_off")
-    },
-    "Salidas": {
-        "labels": ("Exitosas", "Fallidas"),
-        "keys": ("buildout_success", "buildout_fail")
-    },
-    "Recuperaciones": {
-        "labels": ("Salida", "Construcción", "Finalización"),
-        "keys": (
-            "recovery_buildout",
-            "recovery_build",
-            "recovery_finish"
-        )
-    },
-    "Pérdidas": {
-        "labels": ("Salida", "Construcción", "Finalización"),
-        "keys": ("loss_buildout", "loss_build", "loss_finish")
-    },
-    "Faltas": {
-        "labels": ("Cometidas", "Recibidas"),
-        "keys": ("fouls_committed", "fouls_received")
-    }
-}
 
 
 def format_match_label(match):
@@ -50,10 +19,12 @@ def format_match_label(match):
     return " · ".join(parts)
 
 
-def build_season_event_details(matches, side="team"):
+def build_season_event_details(matches, side="team", match_analyses=None):
     """Aggregate team or opponent event categories and match occurrences."""
     if side not in ("team", "opponent"):
         raise ValueError("side must be 'team' or 'opponent'")
+    if match_analyses is not None and len(match_analyses) != len(matches):
+        raise ValueError("match_analyses must align with matches")
 
     totals = {
         category: [0] * len(details["keys"])
@@ -65,12 +36,16 @@ def build_season_event_details(matches, side="team"):
         for category in SEASON_EVENT_CATEGORIES
     }
 
-    for loaded_match in matches:
+    for index, loaded_match in enumerate(matches):
         match = loaded_match["data"]["match"].iloc[0]
         venue = match.get("venue")
         if venue not in ("home", "away"):
             venue = "home"
-        team_stats = build_team_stats(loaded_match["data"]["events"], venue)
+        team_stats = (
+            match_analyses[index]["team_stats"]
+            if match_analyses is not None
+            else build_team_stats(loaded_match["data"]["events"], venue)
+        )
         opponent_venue = "away" if venue == "home" else "home"
         selected_venue = venue if side == "team" else opponent_venue
         selected_stats = team_stats[selected_venue]
@@ -90,28 +65,14 @@ def build_season_event_details(matches, side="team"):
 
         match_values = {
             "Goles": goals,
-            "Tiros": (
-                selected_stats["shots_target"],
-                selected_stats["shots_off"]
-            ),
-            "Salidas": (
-                selected_stats["buildout_success"],
-                selected_stats["buildout_fail"]
-            ),
-            "Recuperaciones": (
-                selected_stats["recovery_buildout"],
-                selected_stats["recovery_build"],
-                selected_stats["recovery_finish"]
-            ),
-            "Pérdidas": (
-                selected_stats["loss_buildout"],
-                selected_stats["loss_build"],
-                selected_stats["loss_finish"]
-            ),
-            "Faltas": (
-                selected_stats["fouls_committed"],
-                selected_stats["fouls_received"]
-            )
+            **{
+                category: tuple(
+                    selected_stats[key]
+                    for key in details["keys"]
+                )
+                for category, details in SEASON_EVENT_CATEGORIES.items()
+                if category != "Goles"
+            }
         }
         match_name = format_match_label(match)
 

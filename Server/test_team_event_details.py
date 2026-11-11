@@ -77,6 +77,23 @@ def test_opponent_events_follow_actual_venue():
     assert details["recoveries"].empty
 
 
+def test_team_event_details_normalize_legacy_aliases():
+    events = pd.DataFrame([
+        {"eventType": "own_goal", "matchSecond": 60},
+        {"eventType": "goal_rival", "matchSecond": 120},
+        {"eventType": "corner_against", "matchSecond": 180}
+    ])
+
+    details = build_team_event_details(events, "home")
+
+    assert details["shots"]["Acción"].tolist() == ["Gol"]
+    assert details["shots"].iloc[0]["Minuto"] == "1'"
+    assert details["shots"].iloc[0]["Jugador"] == "—"
+    assert build_team_event_details(events, "away")["shots"][
+        "Acción"
+    ].tolist() == ["Gol"]
+
+
 def test_invalid_side_is_rejected():
     try:
         build_team_event_details(pd.DataFrame(), "unknown")

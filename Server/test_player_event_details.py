@@ -45,6 +45,7 @@ def test_player_timeline_is_chronological_and_labeled():
 def test_player_recovery_counts_include_legacy_event():
     events = pd.DataFrame([
         {"playerId": 7, "eventType": "recovery_buildout"},
+        {"playerId": 7, "eventType": "recovery"},
         {"playerId": 7, "eventType": "recovery_finish"},
         {"playerId": 7, "eventType": "loss_build"}
     ])
@@ -52,8 +53,13 @@ def test_player_recovery_counts_include_legacy_event():
     assert build_player_recovery_counts(
         events,
         7,
-        ("recovery_buildout", "recovery_build", "recovery_finish", "recovery")
-    ) == [1, 0, 1, 0]
+        "recoveries"
+    ) == [1, 0, 1, 1]
+    assert build_player_recovery_counts(
+        events,
+        7,
+        "losses"
+    ) == [0, 1, 0, 0]
 
 
 def test_player_with_no_events_has_empty_timeline_and_zero_counts():
@@ -65,5 +71,19 @@ def test_player_with_no_events_has_empty_timeline_and_zero_counts():
     assert build_player_recovery_counts(
         events,
         7,
-        ("recovery_buildout", "recovery_build", "recovery_finish", "recovery")
+        "recoveries"
     ) == [0, 0, 0, 0]
+
+
+def test_player_timeline_normalizes_event_aliases_from_catalog():
+    events = pd.DataFrame([
+        {
+            "playerId": 7,
+            "eventType": "own_goal",
+            "matchSecond": 60
+        }
+    ])
+
+    timeline = build_player_event_details(events, 7)
+
+    assert timeline["Acción"].tolist() == ["Gol"]

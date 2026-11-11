@@ -1,23 +1,9 @@
 import pandas as pd
 
-
-TIMELINE_EVENTS = {
-    "goal_own": ("⚽ Gol", "Nuestro equipo"),
-    "own_goal": ("⚽ Gol", "Nuestro equipo"),
-    "rival_goal": ("⚽ Gol rival", "Rival"),
-    "goal_rival": ("⚽ Gol rival", "Rival"),
-    "shot_target": ("🎯 Tiro a puerta", "Nuestro equipo"),
-    "shot_off": ("Tiro fuera", "Nuestro equipo"),
-    "rival_shot_target": ("🎯 Tiro a puerta", "Rival"),
-    "rival_shot_off": ("Tiro fuera", "Rival"),
-    "corner_for": ("🚩 Córner a favor", "Nuestro equipo"),
-    "rival_corner": ("🚩 Córner en contra", "Rival"),
-    "corner_against": ("🚩 Córner en contra", "Rival"),
-    "assist": ("🅰️ Asistencia", "Nuestro equipo"),
-    "yellow": ("🟨 Tarjeta amarilla", "Nuestro equipo"),
-    "rival_yellow": ("🟨 Tarjeta amarilla", "Rival"),
-    "substitution": ("🔄 Cambio", "Nuestro equipo")
-}
+from src.analysis.event_catalog import (
+    TIMELINE_EVENTS,
+    canonical_event_type
+)
 
 
 def _event_second(event):
@@ -46,7 +32,7 @@ def build_match_timeline(events_df):
     timeline_events = []
 
     for order, event in enumerate(events_df.to_dict("records")):
-        event_type = event.get("eventType")
+        event_type = canonical_event_type(event.get("eventType"))
         if event_type not in TIMELINE_EVENTS:
             continue
 
@@ -68,9 +54,9 @@ def build_match_timeline(events_df):
 
     for event in timeline_events:
         event_type = event["eventType"]
-        if event_type in ("goal_own", "own_goal"):
+        if event_type == "goal_own":
             own_goals += 1
-        elif event_type in ("rival_goal", "goal_rival"):
+        elif event_type == "rival_goal":
             rival_goals += 1
 
         minute, second = divmod(event["second"], 60)

@@ -1,27 +1,11 @@
 import pandas as pd
 
-
-PLAYER_EVENT_LABELS = {
-    "goal_own": "Gol",
-    "own_goal": "Gol",
-    "shot_target": "Tiro a puerta",
-    "shot_off": "Tiro fuera",
-    "shot": "Tiro",
-    "assist": "Asistencia",
-    "dribble_ok": "Regate completado",
-    "dribble_bad": "Regate fallido",
-    "recovery_buildout": "Recuperación · Salida",
-    "recovery_build": "Recuperación · Construcción",
-    "recovery_finish": "Recuperación · Finalización",
-    "recovery": "Recuperación · Sin especificar",
-    "loss_buildout": "Pérdida · Salida",
-    "loss_build": "Pérdida · Construcción",
-    "loss_finish": "Pérdida · Finalización",
-    "loss": "Pérdida · Sin especificar",
-    "foul_committed": "Falta cometida",
-    "foul_received": "Falta recibida",
-    "yellow": "Tarjeta amarilla"
-}
+from src.analysis.event_catalog import (
+    PLAYER_EVENT_LABELS,
+    canonical_event_type,
+    phase_metric_keys,
+    phase_event_types
+)
 
 
 def _event_second(event):
@@ -36,65 +20,125 @@ def _event_second(event):
     return int(minute) * 60 + int(second)
 
 
-def build_player_event_details(events_df, player_id):
-    """Return a player's events in match order with readable labels and time."""
-    if events_df.empty or "playerId" not in events_df:
-        player_events = events_df.iloc[0:0]
-    else:
-        player_events = events_df[events_df["playerId"] == player_id]
+def _empty_player_details():
+    return {
+        "recoveries": [0] * len(phase_metric_keys("recoveries")),
+        "losses": [0] * len(phase_metric_keys("losses")),
+        "timeline": pd.DataFrame(
+            columns=["Minuto", "Acción", "Detalle"]
+        )
+    }
 
-    rows = []
-    for order, event in enumerate(player_events.to_dict("records")):
-        match_second = _event_second(event)
-        minute, second = divmod(match_second, 60)
-        event_type = event.get("eventType")
-        description = event.get("description")
-        if description is None or pd.isna(description):
-            description = ""
-        rows.append({
-            "_second": match_second,
-            "_order": order,
-            "Minuto": f"{minute}'" if second == 0 else f"{minute}:{second:02d}",
-            "Acción": PLAYER_EVENT_LABELS.get(event_type, str(event_type)),
-            "Detalle": description
-        })
 
-    for order, event in enumerate(events_df.to_dict("records")):
+def build_player_details_by_id(events_df, player_ids):
+    """Build every requested player's phase counts and timeline in one pass."""
+    player_ids = list(player_ids)
+    player_details = {
+        player_id: {
+            "recoveries": [0] * len(phase_metric_keys("recoveries")),
+            "losses": [0] * len(phase_metric_keys("losses")),
+            "timeline_rows": []
+        }
+        for player_id in player_ids
+    }
+    if not player_details or events_df.empty:
+        return {
+            player_id: _empty_player_details()
+            for player_id in player_ids
+        }
+
+    recovery_indexes = {
+        event_type: index
+        for index, event_type in enumerate(phase_event_types("recoveries"))
+    }
+    loss_indexes = {
+        event_type: index
+        for index, event_type in enumerate(phase_event_types("losses"))
+    }
+    has_player_id = "playerId" in events_df
+    records = events_df.to_dict("records")
+
+    for order, event in enumerate(records):
+        event_type = canonical_event_type(event.get("eventType"))
+        player_id = event.get("playerId") if has_player_id else None
+        if player_id in player_details:
+            player_detail = player_details[player_id]
+            for group, indexes in (
+                ("recoveries", recovery_indexes),
+                ("losses", loss_indexes)
+            ):
+                index = indexes.get(event_type)
+                if index is not None:
+                    player_detail[group][index] += 1
+
+            if event_type is not None:
+                match_second = _event_second(event)
+                description = event.get("description")
+                if description is None or pd.isna(description):
+                    description = ""
+                player_detail["timeline_rows"].append({
+                    "_second": match_second,
+                    "_order": order,
+                    "Minuto": _format_minute(match_second),
+                    "Acción": PLAYER_EVENT_LABELS.get(
+                        event_type,
+                        str(event_type)
+                    ),
+                    "Detalle": description
+                })
+
         if event.get("eventType") != "substitution":
             continue
-        if player_id not in (event.get("playerOut"), event.get("playerIn")):
-            continue
         match_second = _event_second(event)
-        minute, second = divmod(match_second, 60)
-        direction = (
-            "Sale"
-            if event.get("playerOut") == player_id
-            else "Entra"
-        )
         description = event.get("description")
         if description is None or pd.isna(description):
             description = ""
-        rows.append({
-            "_second": match_second,
-            "_order": len(player_events) + order,
-            "Minuto": f"{minute}'" if second == 0 else f"{minute}:{second:02d}",
-            "Acción": f"Cambio · {direction}",
-            "Detalle": description
-        })
+        for substituted_player_id, direction in (
+            (event.get("playerOut"), "Sale"),
+            (event.get("playerIn"), "Entra")
+        ):
+            player_detail = player_details.get(substituted_player_id)
+            if player_detail is None:
+                continue
+            player_detail["timeline_rows"].append({
+                "_second": match_second,
+                "_order": len(records) + order,
+                "Minuto": _format_minute(match_second),
+                "Acción": f"Cambio · {direction}",
+                "Detalle": description
+            })
 
-    return pd.DataFrame(
-        sorted(rows, key=lambda row: (row["_second"], row["_order"])),
-        columns=["_second", "_order", "Minuto", "Acción", "Detalle"]
-    ).drop(columns=["_second", "_order"])
+    result = {}
+    for player_id, player_detail in player_details.items():
+        rows = sorted(
+            player_detail["timeline_rows"],
+            key=lambda row: (row["_second"], row["_order"])
+        )
+        result[player_id] = {
+            "recoveries": player_detail["recoveries"],
+            "losses": player_detail["losses"],
+            "timeline": pd.DataFrame(
+                rows,
+                columns=["_second", "_order", "Minuto", "Acción", "Detalle"]
+            ).drop(columns=["_second", "_order"])
+        }
+    return result
 
 
-def build_player_recovery_counts(events_df, player_id, event_types):
-    """Count recovery or loss events by phase, including legacy event types."""
-    if events_df.empty or "playerId" not in events_df:
-        return [0, 0, 0, 0]
-    player_events = events_df[events_df["playerId"] == player_id]
-    counts = player_events["eventType"].value_counts()
-    return [
-        int(counts.get(event_type, 0))
-        for event_type in event_types
-    ]
+def _format_minute(match_second):
+    minute, second = divmod(match_second, 60)
+    return f"{minute}'" if second == 0 else f"{minute}:{second:02d}"
+
+
+def build_player_event_details(events_df, player_id):
+    """Return a player's events in match order with readable labels and time."""
+    return build_player_details_by_id(events_df, [player_id])[
+        player_id
+    ]["timeline"]
+
+
+def build_player_recovery_counts(events_df, player_id, phase_group):
+    """Count recovery or loss events by the catalog's ordered phases."""
+    return build_player_details_by_id(events_df, [player_id])[
+        player_id
+    ][phase_group]

@@ -34,6 +34,26 @@ def test_current_client_events_are_counted_for_team():
     assert stats["mismatched_team_labels"] == 0
 
 
+def test_legacy_recoveries_and_losses_are_counted_alongside_zones():
+    events_df = pd.DataFrame([
+        {"eventType": "recovery_buildout", "team": "home"},
+        {"eventType": "recovery_build", "team": "home"},
+        {"eventType": "recovery_finish", "team": "home"},
+        {"eventType": "recovery", "team": "home"},
+        {"eventType": "loss_buildout", "team": "home"},
+        {"eventType": "loss_build", "team": "home"},
+        {"eventType": "loss_finish", "team": "home"},
+        {"eventType": "loss", "team": "home"}
+    ])
+
+    stats = build_team_stats(events_df)
+
+    assert stats["home"]["recoveries"] == 4
+    assert stats["home"]["recovery_unspecified"] == 1
+    assert stats["home"]["losses"] == 4
+    assert stats["home"]["loss_unspecified"] == 1
+
+
 def test_our_team_metrics_follow_venue_when_playing_away():
     events_df = pd.DataFrame([
         {"eventType": "goal_own", "team": "away"},

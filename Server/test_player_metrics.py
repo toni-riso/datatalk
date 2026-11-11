@@ -97,6 +97,32 @@ def test_own_goal_alias_is_counted_for_player():
     assert stats.iloc[0]["Tiros Puerta"] == 1
 
 
+def test_legacy_recoveries_and_losses_are_added_to_zoned_events():
+    players_df = pd.DataFrame([{
+        "id": 1,
+        "dorsal": 9,
+        "name": "Pablo",
+        "position": "DC",
+        "starter": True,
+        "stints": [{"in": 0, "out": None}]
+    }])
+    events_df = pd.DataFrame([
+        {"playerId": 1, "eventType": "recovery_buildout"},
+        {"playerId": 1, "eventType": "recovery"},
+        {"playerId": 1, "eventType": "loss_finish"},
+        {"playerId": 1, "eventType": "loss"}
+    ])
+
+    stats = build_player_stats(
+        players_df,
+        events_df,
+        match_duration_seconds=600
+    )
+
+    assert stats.iloc[0]["Recuperaciones"] == 2
+    assert stats.iloc[0]["Pérdidas"] == 2
+
+
 def test_participation_uses_actual_match_duration():
     players_df = pd.DataFrame([
         {

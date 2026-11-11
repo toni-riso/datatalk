@@ -67,8 +67,18 @@ def test_season_player_details_aggregate_phases_and_match_timeline():
                 },
                 {
                     "playerId": 102,
+                    "eventType": "recovery",
+                    "matchSecond": 210
+                },
+                {
+                    "playerId": 102,
                     "eventType": "loss_build",
                     "matchSecond": 240
+                },
+                {
+                    "playerId": 102,
+                    "eventType": "loss",
+                    "matchSecond": 270
                 },
                 {
                     "playerId": 102,
@@ -82,8 +92,8 @@ def test_season_player_details_aggregate_phases_and_match_timeline():
 
     details = build_season_player_details(matches, 9, "Pablo")
 
-    assert details["recoveries"] == [1, 1, 1, 0]
-    assert details["losses"] == [0, 1, 0, 1]
+    assert details["recoveries"] == [1, 1, 1, 1]
+    assert details["losses"] == [0, 1, 0, 2]
     assert details["timeline"].to_dict("records") == [
         {
             "Partido": "J1 · Local vs Visitante · 2026-01-01",
@@ -111,8 +121,20 @@ def test_season_player_details_aggregate_phases_and_match_timeline():
         },
         {
             "Partido": "J2 · Local vs Visitante · 2026-02-01",
+            "Minuto": "3:30",
+            "Acción": "Recuperación · Sin especificar",
+            "Detalle": ""
+        },
+        {
+            "Partido": "J2 · Local vs Visitante · 2026-02-01",
             "Minuto": "4'",
             "Acción": "Pérdida · Construcción",
+            "Detalle": ""
+        },
+        {
+            "Partido": "J2 · Local vs Visitante · 2026-02-01",
+            "Minuto": "4:30",
+            "Acción": "Pérdida · Sin especificar",
             "Detalle": ""
         },
         {

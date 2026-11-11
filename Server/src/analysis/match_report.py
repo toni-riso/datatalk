@@ -1,5 +1,7 @@
 import pandas as pd
 
+from src.analysis.event_catalog import PHASE_GROUPS
+
 
 def _percentage(numerator, denominator):
     if denominator == 0:
@@ -23,7 +25,7 @@ def build_match_comparison(team_stats, home_team=None, away_team=None):
         buildout_attempts = (
             stats["buildout_success"] + stats["buildout_fail"]
         )
-        rows.append({
+        row = {
             "Equipo": label,
             ("Tiros y córners", "Goles"): stats["goals"],
             ("Tiros y córners", "Tiros a puerta"): stats["shots_target"],
@@ -37,26 +39,14 @@ def build_match_comparison(team_stats, home_team=None, away_team=None):
             ("Salidas", "Salidas fallidas"): stats["buildout_fail"],
             ("Salidas", "Éxito en salida"): _percentage(
                 stats["buildout_success"], buildout_attempts
-            ),
-            ("Recuperaciones", "Salida"): (
-                stats["recovery_buildout"] if tracked_for_side else "—"
-            ),
-            ("Recuperaciones", "Construcción"): (
-                stats["recovery_build"] if tracked_for_side else "—"
-            ),
-            ("Recuperaciones", "Finalización"): (
-                stats["recovery_finish"] if tracked_for_side else "—"
-            ),
-            ("Pérdidas", "Salida"): (
-                stats["loss_buildout"] if tracked_for_side else "—"
-            ),
-            ("Pérdidas", "Construcción"): (
-                stats["loss_build"] if tracked_for_side else "—"
-            ),
-            ("Pérdidas", "Finalización"): (
-                stats["loss_finish"] if tracked_for_side else "—"
             )
-        })
+        }
+        for details in PHASE_GROUPS.values():
+            for _, metric, phase_label in details["phases"]:
+                row[(details["title"], phase_label)] = (
+                    stats[metric] if tracked_for_side else "—"
+                )
+        rows.append(row)
 
     comparison = pd.DataFrame(rows).set_index("Equipo")
     comparison.columns = pd.MultiIndex.from_tuples(

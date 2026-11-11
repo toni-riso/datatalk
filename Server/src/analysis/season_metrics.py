@@ -1,7 +1,6 @@
 import pandas as pd
 
-from src.analysis.player_metrics import build_player_stats
-from src.analysis.team_metrics import build_team_stats
+from src.analysis.match_analysis import analyze_match
 
 
 PLAYER_COUNT_COLUMNS = (
@@ -48,8 +47,11 @@ def filter_matches(matches, season=None, competition=None):
     return filtered_matches
 
 
-def build_season_stats(matches):
+def build_season_stats(matches, match_analyses=None):
     """Aggregate match, team, and player metrics across loaded matches."""
+    if match_analyses is not None and len(match_analyses) != len(matches):
+        raise ValueError("match_analyses must align with matches")
+
     summary = {
         "matches": len(matches),
         "wins": 0,
@@ -67,7 +69,7 @@ def build_season_stats(matches):
     player_totals = {}
     total_match_seconds = 0
 
-    for loaded_match in matches:
+    for index, loaded_match in enumerate(matches):
         data = loaded_match["data"]
         match = data["match"].iloc[0]
         venue = match.get("venue")
@@ -91,7 +93,12 @@ def build_season_stats(matches):
         else:
             summary["losses"] += 1
 
-        team_stats = build_team_stats(data["events"], venue)
+        match_analysis = (
+            match_analyses[index]
+            if match_analyses is not None
+            else analyze_match(data)
+        )
+        team_stats = match_analysis["team_stats"]
         our_stats = team_stats[venue]
         opponent_venue = "away" if venue == "home" else "home"
         opponent_stats = team_stats[opponent_venue]
@@ -104,11 +111,7 @@ def build_season_stats(matches):
 
         match_duration = match["currentSecond"]
         total_match_seconds += match_duration
-        player_stats = build_player_stats(
-            data["players"],
-            data["events"],
-            match_duration
-        )
+        player_stats = match_analysis["player_stats"]
         for _, player in player_stats.iterrows():
             key = (player["Dorsal"], player["Jugador"])
             totals = player_totals.setdefault(

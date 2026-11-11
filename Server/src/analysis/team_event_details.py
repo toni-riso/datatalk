@@ -1,27 +1,10 @@
 import pandas as pd
 
-
-OWN_EVENTS = {
-    "goal_own": ("shots", "Gol"),
-    "own_goal": ("shots", "Gol"),
-    "shot_target": ("shots", "Tiro a puerta"),
-    "shot_off": ("shots", "Tiro fuera"),
-    "buildout_success": ("buildouts", "Salida exitosa"),
-    "buildout_fail": ("buildouts", "Salida fallida"),
-    "recovery_buildout": ("recoveries", "Recuperación · Salida"),
-    "recovery_build": ("recoveries", "Recuperación · Construcción"),
-    "recovery_finish": ("recoveries", "Recuperación · Finalización"),
-    "recovery": ("recoveries", "Recuperación · Sin especificar")
-}
-
-OPPONENT_EVENTS = {
-    "rival_goal": ("shots", "Gol"),
-    "goal_rival": ("shots", "Gol"),
-    "rival_shot_target": ("shots", "Tiro a puerta"),
-    "rival_shot_off": ("shots", "Tiro fuera"),
-    "rival_buildout_success": ("buildouts", "Salida exitosa"),
-    "rival_buildout_fail": ("buildouts", "Salida fallida")
-}
+from src.analysis.event_catalog import (
+    TEAM_EVENT_CHARTS,
+    TEAM_EVENT_DETAILS,
+    canonical_event_type
+)
 
 
 def _event_second(event):
@@ -36,40 +19,35 @@ def _event_second(event):
     return int(minute) * 60 + int(second)
 
 
-def build_team_event_details(events_df, side, our_venue="home"):
-    """Return chronological shot, buildout, and recovery events for a side."""
-    if side not in ("home", "away"):
-        raise ValueError("side must be 'home' or 'away'")
+def build_team_event_details_by_side(events_df, our_venue="home"):
+    """Build event detail tables for both match sides in one event pass."""
     if our_venue not in ("home", "away"):
         raise ValueError("our_venue must be 'home' or 'away'")
 
     opponent_venue = "away" if our_venue == "home" else "home"
-    details = {
-        "shots": [],
-        "buildouts": [],
-        "recoveries": []
+    details_by_side = {
+        side: {
+            "shots": [],
+            "buildouts": [],
+            "recoveries": []
+        }
+        for side in ("home", "away")
     }
 
     for order, event in enumerate(events_df.to_dict("records")):
-        event_type = event.get("eventType")
-        if event_type in OWN_EVENTS:
-            event_side = our_venue
-            category, label = OWN_EVENTS[event_type]
-        elif event_type in OPPONENT_EVENTS:
-            event_side = opponent_venue
-            category, label = OPPONENT_EVENTS[event_type]
-        else:
+        event_type = canonical_event_type(event.get("eventType"))
+        definition = TEAM_EVENT_DETAILS.get(event_type)
+        if definition is None:
             continue
-
-        if event_side != side:
-            continue
+        perspective, category, label = definition
+        event_side = our_venue if perspective == "own" else opponent_venue
 
         match_second = _event_second(event)
         minute, second = divmod(match_second, 60)
         player_name = event.get("playerName")
         if player_name is None or pd.isna(player_name) or not player_name:
             player_name = "—"
-        details[category].append({
+        details_by_side[event_side][category].append({
             "_second": match_second,
             "_order": order,
             "Minuto": f"{minute}'" if second == 0 else f"{minute}:{second:02d}",
@@ -78,39 +56,50 @@ def build_team_event_details(events_df, side, our_venue="home"):
         })
 
     return {
-        category: pd.DataFrame(
-            sorted(events, key=lambda event: (event["_second"], event["_order"])),
-            columns=["_second", "_order", "Minuto", "Acción", "Jugador"]
-        ).drop(columns=["_second", "_order"])
-        for category, events in details.items()
+        side: {
+            category: pd.DataFrame(
+                sorted(
+                    events,
+                    key=lambda event: (
+                        event["_second"],
+                        event["_order"]
+                    )
+                ),
+                columns=[
+                    "_second",
+                    "_order",
+                    "Minuto",
+                    "Acción",
+                    "Jugador"
+                ]
+            ).drop(columns=["_second", "_order"])
+            for category, events in details.items()
+        }
+        for side, details in details_by_side.items()
     }
+
+
+def build_team_event_details(events_df, side, our_venue="home"):
+    """Return chronological shot, buildout, and recovery events for a side."""
+    if side not in ("home", "away"):
+        raise ValueError("side must be 'home' or 'away'")
+    return build_team_event_details_by_side(
+        events_df,
+        our_venue
+    )[side]
 
 
 def build_event_chart_data(event_table, category):
     """Return labels, values, and total for a team's event donut chart."""
-    counts = event_table["Acción"].value_counts()
-    if category == "shots":
-        labels = ["A puerta (incl. goles)", "Fuera"]
-        values = [
-            int(counts.get("Tiro a puerta", 0) + counts.get("Gol", 0)),
-            int(counts.get("Tiro fuera", 0))
-        ]
-    elif category == "buildouts":
-        labels = ["Exitosas", "Fallidas"]
-        values = [
-            int(counts.get("Salida exitosa", 0)),
-            int(counts.get("Salida fallida", 0))
-        ]
-    elif category == "recoveries":
-        recovery_labels = (
-            "Recuperación · Salida",
-            "Recuperación · Construcción",
-            "Recuperación · Finalización",
-            "Recuperación · Sin especificar"
-        )
-        labels = ["Salida", "Construcción", "Finalización", "Sin especificar"]
-        values = [int(counts.get(label, 0)) for label in recovery_labels]
-    else:
+    chart_definition = TEAM_EVENT_CHARTS.get(category)
+    if chart_definition is None:
         raise ValueError(f"Unsupported event chart category: {category}")
+
+    counts = event_table["Acción"].value_counts()
+    labels = list(chart_definition["labels"])
+    values = [
+        int(sum(counts.get(event_label, 0) for event_label in event_labels))
+        for event_labels in chart_definition["count_groups"]
+    ]
 
     return labels, values, sum(values)

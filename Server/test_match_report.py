@@ -17,9 +17,11 @@ def test_match_comparison_includes_volumes_with_percentages():
         {"eventType": "recovery_buildout", "team": "home"},
         {"eventType": "recovery_build", "team": "home"},
         {"eventType": "recovery_finish", "team": "home"},
+        {"eventType": "recovery", "team": "home"},
         {"eventType": "loss_buildout", "team": "home"},
         {"eventType": "loss_build", "team": "home"},
         {"eventType": "loss_finish", "team": "home"},
+        {"eventType": "loss", "team": "home"},
         {"eventType": "corner_for", "team": "home"},
         {"eventType": "rival_corner", "team": "away"}
     ])
@@ -46,9 +48,13 @@ def test_match_comparison_includes_volumes_with_percentages():
     assert comparison.loc[home, ("Recuperaciones", "Salida")] == 1
     assert comparison.loc[home, ("Recuperaciones", "Construcción")] == 1
     assert comparison.loc[home, ("Recuperaciones", "Finalización")] == 1
+    assert comparison.loc[
+        home, ("Recuperaciones", "Sin especificar")
+    ] == 1
     assert comparison.loc[home, ("Pérdidas", "Salida")] == 1
     assert comparison.loc[home, ("Pérdidas", "Construcción")] == 1
     assert comparison.loc[home, ("Pérdidas", "Finalización")] == 1
+    assert comparison.loc[home, ("Pérdidas", "Sin especificar")] == 1
     assert comparison.loc[away, ("Recuperaciones", "Salida")] == "—"
     assert comparison.loc[away, ("Pérdidas", "Salida")] == "—"
     assert comparison.loc[home, ("Tiros y córners", "Córners")] == 1

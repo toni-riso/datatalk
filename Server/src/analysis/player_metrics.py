@@ -1,19 +1,40 @@
 # src/analysis/player_metrics.py
 
 import pandas as pd
+
+from src.analysis.event_catalog import (
+    PLAYER_METRIC_EVENT_TYPES,
+    canonical_event_type,
+    phase_event_types
+)
 from src.analysis.minutes import calculate_minutes_played
 
-def count_events(events_df, event_type):
-    """
-    Cuenta eventos de un determinado tipo.
-    """
+
+def _event_counts(events_df):
     if events_df.empty or "eventType" not in events_df:
-        return 0
-    return len(
-        events_df[
-            events_df["eventType"] == event_type
-        ]
+        return pd.Series(dtype="int64")
+    return events_df["eventType"].map(canonical_event_type).value_counts()
+
+
+def _count_event_type(event_counts, event_type):
+    return int(event_counts.get(canonical_event_type(event_type), 0))
+
+
+def _count_player_metric(event_counts, metric):
+    return sum(
+        _count_event_type(event_counts, event_type)
+        for event_type in PLAYER_METRIC_EVENT_TYPES.get(metric, ())
     )
+
+
+def count_events(events_df, event_type):
+    """Count a canonical event type, including its known aliases."""
+    return _count_event_type(_event_counts(events_df), event_type)
+
+
+def count_player_metric(events_df, metric):
+    """Count all catalogued event types contributing to a player metric."""
+    return _count_player_metric(_event_counts(events_df), metric)
 
 
 def count_substitutions(player):
@@ -52,18 +73,16 @@ def build_player_stats(
             player_events = events_df[
                 events_df["playerId"] == player["id"]
             ]
+        event_counts = _event_counts(player_events)
 
         # SHOOTING
-        goals = (
-            count_events(player_events, "goal_own") +
-            count_events(player_events, "own_goal")
+        goals = _count_player_metric(event_counts, "goals")
+        shots_target = _count_player_metric(event_counts, "shots_target")
+        shots_off_target = _count_player_metric(
+            event_counts,
+            "shots_off_target"
         )
-        shots_target = (
-            count_events(player_events, "shot_target") +
-            goals
-        )
-        shots_off_target = count_events(player_events, "shot_off")
-        legacy_shots = count_events(player_events, "shot")
+        legacy_shots = _count_player_metric(event_counts, "legacy_shots")
         shots_total = max(
             legacy_shots,
             shots_target + shots_off_target
@@ -81,33 +100,21 @@ def build_player_stats(
             else 0.0
         )
 
-        assists = count_events(player_events, "assist")
+        assists = _count_player_metric(event_counts, "assists")
 
         # DEFENSIVE
         recoveries = sum(
-            count_events(player_events, event_type)
-            for event_type in (
-                "recovery_buildout",
-                "recovery_build",
-                "recovery_finish"
-            )
+            _count_event_type(event_counts, event_type)
+            for event_type in phase_event_types("recoveries")
         )
-        if recoveries == 0:
-            recoveries = count_events(player_events, "recovery")
         losses = sum(
-            count_events(player_events, event_type)
-            for event_type in (
-                "loss_buildout",
-                "loss_build",
-                "loss_finish"
-            )
+            _count_event_type(event_counts, event_type)
+            for event_type in phase_event_types("losses")
         )
-        if losses == 0:
-            losses = count_events(player_events, "loss")
 
         # DRIBBLES
-        dribbles_ok = count_events(player_events,"dribble_ok")
-        dribbles_bad = count_events(player_events,"dribble_bad")
+        dribbles_ok = _count_player_metric(event_counts, "dribbles_ok")
+        dribbles_bad = _count_player_metric(event_counts, "dribbles_bad")
         total_dribbles = (dribbles_ok + dribbles_bad)
         dribble_accuracy = (
             round(
@@ -119,11 +126,17 @@ def build_player_stats(
         )
 
         # FOULS
-        fouls_committed = count_events(player_events,"foul_committed")
-        fouls_suffered = count_events(player_events,"foul_received")
+        fouls_committed = _count_player_metric(
+            event_counts,
+            "fouls_committed"
+        )
+        fouls_suffered = _count_player_metric(
+            event_counts,
+            "fouls_received"
+        )
 
         # DISCIPLINE
-        yellow_cards = count_events(player_events,"yellow")
+        yellow_cards = _count_player_metric(event_counts, "yellow_cards")
 
         # PLAYING TIME
         exact_minutes_played = calculate_minutes_played(
