@@ -4,6 +4,10 @@ import plotly.graph_objects as go
 
 from src.loaders.json_loader import load_match
 from src.analysis.player_metrics import build_player_stats
+from src.analysis.player_event_details import (
+    build_player_event_details,
+    build_player_recovery_counts
+)
 from src.analysis.match_timeline import build_match_timeline
 from src.analysis.team_event_details import (
     build_event_chart_data,
@@ -18,6 +22,8 @@ from src.analysis.season_metrics import (
     filter_matches,
     get_match_filter_value
 )
+from src.analysis.season_event_details import build_season_event_details
+from src.analysis.season_player_details import build_season_player_details
 from src.analysis.team_metrics import build_team_stats
 
 
@@ -33,10 +39,21 @@ def build_donut_chart(title, labels, values, total):
     chart_labels = labels if total else ["Sin datos"]
     chart_values = values if total else [1]
     color_by_label = {
+        "A puerta": "#2e8b57",
         "A puerta (incl. goles)": "#2e8b57",
+        "Tiros a puerta": "#2e8b57",
         "Fuera": "#e07a5f",
+        "Tiros fuera": "#e07a5f",
+        "Completados": "#2e8b57",
+        "Fallidos": "#e07a5f",
         "Exitosas": "#2e8b57",
         "Fallidas": "#e07a5f",
+        "Goles a favor": "#2e8b57",
+        "Goles en contra": "#e07a5f",
+        "Goles a favor del rival": "#2e8b57",
+        "Goles en contra del rival": "#e07a5f",
+        "Cometidas": "#e07a5f",
+        "Recibidas": "#4c78a8",
         "Salida": "#4c78a8",
         "Construcción": "#f2b134",
         "Finalización": "#7a5195",
@@ -49,7 +66,7 @@ def build_donut_chart(title, labels, values, total):
         hole=0.68,
         sort=False,
         textinfo="label+value" if total else "none",
-        hovertemplate="%{label}: %{value}<extra></extra>",
+        hovertemplate="%{label}: %{value} (%{percent})<extra></extra>",
         marker={
             "colors": [
                 color_by_label.get(label, "#9e9e9e")
@@ -198,39 +215,70 @@ def render_season_dashboard(matches):
     ):
         column.metric(label, value)
 
-    team_labels = {
-        "Goles": "goals",
-        "Tiros a puerta": "shots_target",
-        "Tiros fuera": "shots_off",
-        "Salidas exitosas": "buildout_success",
-        "Salidas fallidas": "buildout_fail",
-        "Regates completados": "dribble_ok",
-        "Regates fallidos": "dribble_bad",
-        "Recuperaciones": "recoveries",
-        "Pérdidas": "losses",
-        "Asistencias": "assists",
-        "Córners": "corners_for",
-        "Faltas cometidas": "fouls_committed",
-        "Faltas recibidas": "fouls_received",
-        "Amarillas": "yellow"
-    }
-
     for heading, key in (
         ("Estadísticas acumuladas de nuestro equipo", "team"),
         ("Estadísticas acumuladas de los rivales", "opponent")
     ):
         with st.expander(heading, expanded=False):
-            items = [
-                (label, season_stats[key].get(metric, 0))
-                for label, metric in team_labels.items()
-            ]
-            for start in range(0, len(items), 5):
-                columns = st.columns(5)
-                for column, (label, value) in zip(
-                    columns,
-                    items[start:start + 5]
-                ):
-                    column.metric(label, value)
+            if key in ("team", "opponent"):
+                season_event_details = build_season_event_details(
+                    filtered_matches,
+                    side=key
+                )
+                if key == "team":
+                    st.caption(
+                        "Cada tabla indica los partidos donde se registró "
+                        "cada tipo de evento y su cantidad."
+                    )
+                else:
+                    st.caption(
+                        "Goles, tiros y salidas del rival se muestran con "
+                        "detalle por partido. Recuperaciones, pérdidas y "
+                        "faltas del rival no se registran en los eventos."
+                    )
+                category_names = list(season_event_details)
+                for start in range(0, len(category_names), 2):
+                    columns = st.columns(2)
+                    for column, category in zip(
+                        columns,
+                        category_names[start:start + 2]
+                    ):
+                        category_data = season_event_details[category]
+                        with column:
+                            if not category_data["tracked"]:
+                                st.info(
+                                    f"{category}: este dato no se registra "
+                                    "para el rival."
+                                )
+                                continue
+                            st.plotly_chart(
+                                build_donut_chart(
+                                    category,
+                                    category_data["labels"],
+                                    category_data["values"],
+                                    category_data["total"]
+                                ),
+                                use_container_width=True,
+                                config={"displayModeBar": False}
+                            )
+                            match_count = len(category_data["matches"])
+                            show_details = st.checkbox(
+                                f"Ver detalle por partido ({match_count})",
+                                key=f"season_details_{key}_{category}"
+                            )
+                            if show_details:
+                                if category_data["matches"].empty:
+                                    st.caption(
+                                        "No hay eventos registrados en estos "
+                                        "partidos."
+                                    )
+                                else:
+                                    st.dataframe(
+                                        category_data["matches"],
+                                        use_container_width=True,
+                                        hide_index=True,
+                                        height=260
+                                    )
 
     with st.expander("Estadísticas acumuladas de jugadores", expanded=False):
         st.caption(
@@ -243,6 +291,171 @@ def render_season_dashboard(matches):
             use_container_width=True,
             hide_index=True
         )
+
+    season_players = season_stats["players"]
+    if not season_players.empty:
+        with st.expander("Ficha individual del jugador", expanded=False):
+            player_options = list(range(len(season_players)))
+            selected_player_index = st.selectbox(
+                "Selecciona un jugador",
+                player_options,
+                format_func=lambda index: (
+                    f"#{season_players.iloc[index]['Dorsal']} · "
+                    f"{season_players.iloc[index]['Jugador']} "
+                    f"({season_players.iloc[index]['Posición']})"
+                ),
+                key="season_player_profile"
+            )
+            player = season_players.iloc[selected_player_index]
+            player_details = build_season_player_details(
+                filtered_matches,
+                player["Dorsal"],
+                player["Jugador"]
+            )
+            played_fraction = min(
+                max(float(player["% Part."]) / 100, 0),
+                1
+            )
+
+            st.markdown(
+                f"### #{player['Dorsal']} · {player['Jugador']} "
+                f"— {player['Posición']}"
+            )
+            st.caption(
+                f"{player['Titularidades']} titularidades · "
+                f"{player['Convocatorias']} convocatorias"
+            )
+            st.progress(played_fraction, text="Participación en la temporada")
+            st.caption(
+                f"{player['Min']:.1f} minutos · "
+                f"{player['% Part.']}% del tiempo total disputado"
+            )
+
+            summary_columns = st.columns(6)
+            for column, label, value in zip(
+                summary_columns,
+                (
+                    "Partidos",
+                    "Goles",
+                    "Asistencias",
+                    "Tiros",
+                    "Regates",
+                    "Acciones"
+                ),
+                (
+                    player["Partidos"],
+                    player["Goles"],
+                    player["Asistencias"],
+                    player["Tiros"],
+                    player["Regates OK"] + player["Regates KO"],
+                    player["Acciones"]
+                )
+            ):
+                column.metric(label, value)
+
+            st.markdown("### ⚽ Ataque")
+            shots_column, dribbles_column = st.columns(2)
+            shot_values = [player["Tiros Puerta"], player["Tiros Fuera"]]
+            shot_total = sum(shot_values)
+            with shots_column:
+                st.plotly_chart(
+                    build_donut_chart(
+                        "Tiros",
+                        ["A puerta", "Fuera"],
+                        shot_values,
+                        shot_total
+                    ),
+                    use_container_width=True,
+                    config={"displayModeBar": False}
+                )
+                st.caption(
+                    f"Precisión a puerta: {player['% Tiros Puerta']}%"
+                    if shot_total
+                    else "Sin intentos de tiro."
+                )
+            with dribbles_column:
+                dribble_values = [
+                    player["Regates OK"],
+                    player["Regates KO"]
+                ]
+                dribble_total = sum(dribble_values)
+                st.plotly_chart(
+                    build_donut_chart(
+                        "Regates",
+                        ["Completados", "Fallidos"],
+                        dribble_values,
+                        dribble_total
+                    ),
+                    use_container_width=True,
+                    config={"displayModeBar": False}
+                )
+                st.caption(
+                    f"Éxito en regate: {player['% Regate']}%"
+                    if dribble_total
+                    else "Sin intentos de regate."
+                )
+
+            st.markdown("### 🛡️ Defensa")
+            recovery_column, loss_column = st.columns(2)
+            recovery_values = player_details["recoveries"]
+            recovery_labels = [
+                "Salida",
+                "Construcción",
+                "Finalización",
+                "Sin especificar"
+            ]
+            with recovery_column:
+                st.plotly_chart(
+                    build_donut_chart(
+                        "Recuperaciones",
+                        recovery_labels,
+                        recovery_values,
+                        sum(recovery_values)
+                    ),
+                    use_container_width=True,
+                    config={"displayModeBar": False}
+                )
+            with loss_column:
+                loss_values = player_details["losses"]
+                st.plotly_chart(
+                    build_donut_chart(
+                        "Pérdidas",
+                        recovery_labels,
+                        loss_values,
+                        sum(loss_values)
+                    ),
+                    use_container_width=True,
+                    config={"displayModeBar": False}
+                )
+
+            defensive_columns = st.columns(4)
+            for column, label, value in zip(
+                defensive_columns,
+                ("Faltas cometidas", "Faltas recibidas", "Amarillas", "Cambios"),
+                (
+                    player["Faltas Com."],
+                    player["Faltas Rec."],
+                    player["Amarillas"],
+                    player["Cambios"]
+                )
+            ):
+                column.metric(label, value)
+
+            timeline = player_details["timeline"]
+            show_timeline = st.checkbox(
+                f"Ver cronología por partido ({len(timeline)} eventos)",
+                key=f"season_player_timeline_{player['Dorsal']}_{player['Jugador']}"
+            )
+            if show_timeline:
+                if timeline.empty:
+                    st.info("Este jugador no tiene eventos registrados.")
+                else:
+                    st.dataframe(
+                        timeline,
+                        use_container_width=True,
+                        hide_index=True,
+                        height=320
+                    )
 
 
 def render_match_dashboard(data):
@@ -446,48 +659,176 @@ def render_match_dashboard(data):
     # ==================================================
 
     with st.expander("Ficha individual del jugador", expanded=False):
+        player_options = list(range(len(player_stats)))
         selected_player = st.selectbox(
             "Selecciona un jugador",
-            player_stats["Jugador"].tolist()
+            player_options,
+            format_func=lambda index: (
+                f"#{player_stats.iloc[index]['Dorsal']} · "
+                f"{player_stats.iloc[index]['Jugador']} "
+                f"({player_stats.iloc[index]['Posición']})"
+            )
+        )
+        player = player_stats.iloc[selected_player]
+        matching_players = players_df[
+            (players_df["dorsal"] == player["Dorsal"]) &
+            (players_df["name"] == player["Jugador"])
+        ]
+        player_id = matching_players.iloc[0]["id"]
+        played_fraction = min(max(float(player["% Part."]) / 100, 0), 1)
+
+        st.markdown(
+            f"### #{player['Dorsal']} · {player['Jugador']} "
+            f"— {player['Posición']}"
+        )
+        st.caption(
+            "Titular" if player["Titular"] else "Suplente"
+        )
+        st.progress(played_fraction, text="Participación en el partido")
+        st.caption(
+            f"{player['Min']} min de {round(match['currentSecond'] / 60, 1)} "
+            f"({player['% Part.']}%)"
         )
 
-        player = player_stats[
-            player_stats["Jugador"] == selected_player
-        ].iloc[0]
+        summary_columns = st.columns(5)
+        for column, label, value in zip(
+            summary_columns,
+            ("Goles", "Asistencias", "Tiros", "Regates", "Acciones"),
+            (
+                player["Goles"],
+                player["Asistencias"],
+                player["Tiros"],
+                player["Regates OK"] + player["Regates KO"],
+                player["Acciones"]
+            )
+        ):
+            column.metric(label, value)
 
-        col1, col2, col3, col4 = st.columns(4)
+        st.markdown("### ⚽ Ataque")
+        shots_column, dribbles_column = st.columns(2)
+        shot_total = player["Tiros Puerta"] + player["Tiros Fuera"]
+        shot_labels = ["A puerta", "Fuera"]
+        shot_values = [player["Tiros Puerta"], player["Tiros Fuera"]]
+        with shots_column:
+            st.plotly_chart(
+                build_donut_chart(
+                    "Tiros",
+                    shot_labels,
+                    shot_values,
+                    shot_total
+                ),
+                use_container_width=True,
+                config={"displayModeBar": False}
+            )
+            st.caption(
+                f"Precisión a puerta: {player['% Tiros Puerta']}%"
+                if shot_total
+                else "Sin intentos de tiro."
+            )
+        with dribbles_column:
+            dribble_values = [
+                player["Regates OK"],
+                player["Regates KO"]
+            ]
+            dribble_total = sum(dribble_values)
+            st.plotly_chart(
+                build_donut_chart(
+                    "Regates",
+                    ["Completados", "Fallidos"],
+                    dribble_values,
+                    dribble_total
+                ),
+                use_container_width=True,
+                config={"displayModeBar": False}
+            )
+            st.caption(
+                f"Éxito en regate: {player['% Regate']}%"
+                if dribble_total
+                else "Sin intentos de regate."
+            )
 
-        col1.metric("Minutos", player["Min"])
-        col1.metric("% Participación", player["% Part."])
-        col2.metric("% Regate", player["% Regate"])
-        col3.metric("Tiros", player["Tiros"])
-        col3.metric("% Tiros Puerta", player["% Tiros Puerta"])
-        col4.metric("Goles", player["Goles"])
-        col4.metric("Acciones", player["Acciones"])
+        st.markdown("### 🛡️ Defensa")
+        recovery_values = build_player_recovery_counts(
+            events_df,
+            player_id,
+            (
+                "recovery_buildout",
+                "recovery_build",
+                "recovery_finish",
+                "recovery"
+            )
+        )
+        if sum(recovery_values[:3]) == 0:
+            recovery_values[:3] = [0, 0, 0]
+        else:
+            recovery_values[3] = 0
+        loss_values = build_player_recovery_counts(
+            events_df,
+            player_id,
+            (
+                "loss_buildout",
+                "loss_build",
+                "loss_finish",
+                "loss"
+            )
+        )
+        if sum(loss_values[:3]) == 0:
+            loss_values[:3] = [0, 0, 0]
+        else:
+            loss_values[3] = 0
 
-        col1, col2 = st.columns(2)
+        recovery_column, loss_column = st.columns(2)
+        with recovery_column:
+            st.plotly_chart(
+                build_donut_chart(
+                    "Recuperaciones",
+                    ["Salida", "Construcción", "Finalización", "Sin especificar"],
+                    recovery_values,
+                    sum(recovery_values)
+                ),
+                use_container_width=True,
+                config={"displayModeBar": False}
+            )
+        with loss_column:
+            st.plotly_chart(
+                build_donut_chart(
+                    "Pérdidas",
+                    ["Salida", "Construcción", "Finalización", "Sin especificar"],
+                    loss_values,
+                    sum(loss_values)
+                ),
+                use_container_width=True,
+                config={"displayModeBar": False}
+            )
 
-        with col1:
-            st.markdown("### ⚽ Juego ofensivo")
-            st.write(f"**Regates OK:** {player['Regates OK']}")
-            st.write(f"**Regates KO:** {player['Regates KO']}")
-            st.write(f"**% Regate:** {player['% Regate']}")
-            st.write(f"**Tiros:** {player['Tiros']}")
-            st.write(f"**Tiros a Puerta:** {player['Tiros Puerta']}")
-            st.write(f"**Tiros Fuera:** {player['Tiros Fuera']}")
-            st.write(f"**% Tiros Puerta:** {player['% Tiros Puerta']}")
-            st.write(f"**Goles:** {player['Goles']}")
-            st.write(f"**Asistencias:** {player['Asistencias']}")
+        defensive_columns = st.columns(4)
+        for column, label, value in zip(
+            defensive_columns,
+            ("Faltas cometidas", "Faltas recibidas", "Amarillas", "Cambios"),
+            (
+                player["Faltas Com."],
+                player["Faltas Rec."],
+                player["Amarillas"],
+                player["Cambios"]
+            )
+        ):
+            column.metric(label, value)
 
-        with col2:
-            st.markdown("### 🛡️ Juego defensivo")
-            st.write(f"**Recuperaciones:** {player['Recuperaciones']}")
-            st.write(f"**Pérdidas:** {player['Pérdidas']}")
-            st.write(f"**Faltas Cometidas:** {player['Faltas Com.']}")
-            st.write(f"**Faltas Recibidas:** {player['Faltas Rec.']}")
-            st.write(f"**Amarillas:** {player['Amarillas']}")
-            st.write(f"**Cambios:** {player['Cambios']}")
-            st.write(f"**Acciones Totales:** {player['Acciones']}")
+        player_timeline = build_player_event_details(events_df, player_id)
+        show_player_timeline = st.checkbox(
+            f"Ver cronología del jugador ({len(player_timeline)} eventos)",
+            key=f"player_timeline_{player_id}"
+        )
+        if show_player_timeline:
+            if player_timeline.empty:
+                st.info("Este jugador no tiene eventos registrados.")
+            else:
+                st.dataframe(
+                    player_timeline,
+                    use_container_width=True,
+                    hide_index=True,
+                    height=320
+                )
 
 
 
