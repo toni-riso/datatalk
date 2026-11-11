@@ -1,9 +1,14 @@
 import json
 import streamlit as st
+import plotly.graph_objects as go
 
 from src.loaders.json_loader import load_match
 from src.analysis.player_metrics import build_player_stats
 from src.analysis.match_timeline import build_match_timeline
+from src.analysis.team_event_details import (
+    build_event_chart_data,
+    build_team_event_details
+)
 from src.analysis.match_report import (
     build_match_comparison,
     get_score_discrepancies
@@ -22,6 +27,51 @@ st.set_page_config(
 )
 
 st.title("⚽ Data talk")
+
+
+def build_donut_chart(title, labels, values, total):
+    chart_labels = labels if total else ["Sin datos"]
+    chart_values = values if total else [1]
+    color_by_label = {
+        "A puerta (incl. goles)": "#2e8b57",
+        "Fuera": "#e07a5f",
+        "Exitosas": "#2e8b57",
+        "Fallidas": "#e07a5f",
+        "Salida": "#4c78a8",
+        "Construcción": "#f2b134",
+        "Finalización": "#7a5195",
+        "Sin especificar": "#9e9e9e",
+        "Sin datos": "#e0e0e0"
+    }
+    chart = go.Figure(data=[go.Pie(
+        labels=chart_labels,
+        values=chart_values,
+        hole=0.68,
+        sort=False,
+        textinfo="label+value" if total else "none",
+        hovertemplate="%{label}: %{value}<extra></extra>",
+        marker={
+            "colors": [
+                color_by_label.get(label, "#9e9e9e")
+                for label in chart_labels
+            ]
+        }
+    )])
+    chart.update_layout(
+        title=title,
+        height=300,
+        margin={"l": 10, "r": 10, "t": 45, "b": 35},
+        showlegend=bool(total),
+        legend={"orientation": "h", "y": -0.08},
+        annotations=[{
+            "text": f"<b>{total}</b><br>Total",
+            "x": 0.5,
+            "y": 0.5,
+            "showarrow": False,
+            "font": {"size": 20}
+        }]
+    )
+    return chart
 
 
 def render_season_dashboard(matches):
@@ -220,12 +270,8 @@ def render_match_dashboard(data):
         f"{match['homeTeam']} vs {match['awayTeam']}"
     )
 
-    if our_venue == "home":
-        home_goals = match["homeGoals"]
-        away_goals = match["awayGoals"]
-    else:
-        home_goals = match["awayGoals"]
-        away_goals = match["homeGoals"]
+    home_goals = match["homeGoals"]
+    away_goals = match["awayGoals"]
 
     discrepancies = get_score_discrepancies(
         team_stats,
@@ -277,12 +323,15 @@ def render_match_dashboard(data):
     st.subheader("Resumen comparativo")
     st.caption(
         "Los porcentajes muestran también el volumen usado para calcularlos. "
-        "— indica que no hay intentos registrados."
+        "— indica que no hay intentos registrados o que ese dato no se "
+        "recoge para ese equipo."
     )
-    st.dataframe(
-        build_match_comparison(team_stats),
-        use_container_width=True
+    comparison = build_match_comparison(
+        team_stats,
+        match["homeTeam"],
+        match["awayTeam"]
     )
+    st.dataframe(comparison, use_container_width=True)
 
     st.divider()
 
@@ -299,32 +348,70 @@ def render_match_dashboard(data):
         )
 
     def render_side_stats(side, team_name, heading):
-        st.markdown(f"#### {heading}: {team_name}")
+        side_goals = team_stats[side]["goals"]
+        st.markdown(
+            f"#### {heading}: {team_name} · {side_goals} goles"
+        )
         side_stats = team_stats[side]
         labels = {
-            "Goles": side_stats["goals"],
             "Tiros a puerta": side_stats["shots_target"],
             "Tiros fuera": side_stats["shots_off"],
             "Salidas exitosas": side_stats["buildout_success"],
             "Salidas fallidas": side_stats["buildout_fail"],
-            "Regates completados": side_stats["dribble_ok"],
-            "Regates fallidos": side_stats["dribble_bad"],
             "Recuperaciones": side_stats["recoveries"],
             "Pérdidas": side_stats["losses"],
-            "Asistencias": side_stats["assists"],
-            "Córners": side_stats["corners_for"],
-            "Faltas cometidas": side_stats["fouls_committed"],
-            "Faltas recibidas": side_stats["fouls_received"],
-            "Amarillas": side_stats["yellow"]
+            "Córners": side_stats["corners_for"]
         }
         items = list(labels.items())
-        for start in range(0, len(items), 5):
-            columns = st.columns(5)
-            for column, (label, value) in zip(
-                columns,
-                items[start:start + 5]
-            ):
-                column.metric(label, value)
+        columns = st.columns(len(items))
+        for column, (label, value) in zip(columns, items):
+            column.metric(label, value)
+
+        details = build_team_event_details(
+            events_df,
+            side,
+            our_venue
+        )
+        for title, key in (
+            ("Tiros", "shots"),
+            ("Salidas", "buildouts"),
+            ("Recuperaciones", "recoveries")
+        ):
+            event_table = details[key]
+            if key == "recoveries" and side != our_venue:
+                st.markdown(f"**{title}**")
+                st.caption(
+                    "El detalle de recuperaciones solo se registra "
+                    "para nuestro equipo."
+                )
+                continue
+
+            labels_for_chart, values_for_chart, total = (
+                build_event_chart_data(event_table, key)
+            )
+            chart_column, events_column = st.columns([1, 1.4])
+            with chart_column:
+                st.plotly_chart(
+                    build_donut_chart(
+                        title,
+                        labels_for_chart,
+                        values_for_chart,
+                        total
+                    ),
+                    use_container_width=True,
+                    config={"displayModeBar": False}
+                )
+
+            with events_column:
+                st.markdown(f"**Detalle de {title.lower()}**")
+                if event_table.empty:
+                    st.caption("No hay eventos registrados.")
+                    continue
+                st.dataframe(
+                    event_table,
+                    use_container_width=True,
+                    hide_index=True
+                )
 
     with st.expander("Estadísticas del equipo", expanded=False):
         render_side_stats("home", match["homeTeam"], "Local")
