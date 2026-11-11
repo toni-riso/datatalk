@@ -1,9 +1,9 @@
 # Guía de eventos 
 Consulta la guía de eventos actualizados
 
-[Descripción eventos](https://toni-riso.github.io/datatalk/cliente-V2/eventos.md)
+[Descripción eventos](https://toni-riso.github.io/datatalk/cliente/eventos.md)
 
-[Guía eventos](https://toni-riso.github.io/datatalk/cliente-V2/guia-eventos.md)
+[Guía eventos](https://toni-riso.github.io/datatalk/cliente/guia-eventos.md)
 
 # 🔧 Instalación
 
