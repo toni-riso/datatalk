@@ -1,4 +1,6 @@
 import json
+from pathlib import Path
+
 import streamlit as st
 import plotly.graph_objects as go
 
@@ -698,10 +700,8 @@ def render_match_dashboard(data):
 
 
 
-upload_key = "dashboard_match_files"
 selection_key = "dashboard_match_selection"
 season_option = "Temporada hasta hoy"
-previous_uploads = st.session_state.get(upload_key, []) or []
 previous_selection = st.session_state.get(
     selection_key,
     season_option
@@ -712,9 +712,9 @@ if previous_selection != season_option and not isinstance(
 ):
     previous_selection = season_option
 
-section_title = (
-    f"Partidos cargados: {len(previous_uploads)}"
-)
+data_directory = Path(__file__).resolve().parent / "data"
+json_files = sorted(data_directory.glob("*.json"))
+section_title = f"Partidos encontrados en la carpeta: {len(json_files)}"
 if previous_selection == season_option:
     selected_season = st.session_state.get("season_filter", "—")
     selected_competition = st.session_state.get("competition_filter", "—")
@@ -730,21 +730,17 @@ loaded_matches = []
 
 with st.expander(
     section_title,
-    expanded=not bool(previous_uploads)
+    expanded=not bool(json_files)
 ):
-    uploaded_files = st.file_uploader(
-        "Carga uno o varios partidos (JSON)",
-        type=["json"],
-        accept_multiple_files=True,
-        key=upload_key
+    st.caption(
+        f"Los partidos se leen automáticamente desde `{data_directory}`. "
+        "Añade allí los ficheros JSON y recarga la aplicación."
     )
-    uploaded_files = uploaded_files or []
-    upload_errors = []
+    load_errors = []
 
-    for file_index, uploaded_file in enumerate(uploaded_files, start=1):
+    for file_index, json_file in enumerate(json_files, start=1):
         try:
-            uploaded_file.seek(0)
-            data = load_match(uploaded_file)
+            data = load_match(json_file)
             if data["match"].empty:
                 raise ValueError("El fichero no contiene datos del partido.")
 
@@ -772,13 +768,13 @@ with st.expander(
                 )
 
             label = (
-                f"{file_index}. {uploaded_file.name} | {match['date']} | "
+                f"{file_index}. {json_file.name} | {match['date']} | "
                 f"{match['homeTeam']} {match['homeGoals']}-"
                 f"{match['awayGoals']} {match['awayTeam']}"
             )
             loaded_matches.append({
                 "label": label,
-                "filename": uploaded_file.name,
+                "filename": json_file.name,
                 "data": data,
                 "match": match
             })
@@ -789,19 +785,17 @@ with st.expander(
             ValueError,
             UnicodeDecodeError
         ) as error:
-            upload_errors.append(
-                f"{uploaded_file.name}: {error}"
+            load_errors.append(
+                f"{json_file.name}: {error}"
             )
 
-    for error in upload_errors:
-        st.error(f"No se pudo cargar el partido: {error}")
+    for error in load_errors:
+        st.error(f"No se pudo leer el partido: {error}")
 
     if not loaded_matches:
-        st.info("Carga uno o varios ficheros de partidos para empezar.")
+        st.info("Añade ficheros JSON a la carpeta indicada para empezar.")
     else:
-        st.success(
-            f"Partidos cargados correctamente: {len(loaded_matches)}"
-        )
+        st.success(f"Partidos leídos correctamente: {len(loaded_matches)}")
         st.dataframe(
             [
                 {
